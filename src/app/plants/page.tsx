@@ -2,12 +2,22 @@
 
 import { useEffect, useState } from "react";
 
-export default function PlantsPage() {
-    const [plant1, setPlant1] = useState<any[]>([]);
-    const [plant2, setPlant2] = useState<any[]>([]);
-    const [page, setPage] = useState(1);
-    const limit = 50; // Adjust as needed
+interface SensorData {
+    _id: string;
+    timestamp: string;
+    value: number;
+    metadata: {
+        asset_id: string;
+        name: string;
+        unit: string;
+    };
+}
 
+export default function PlantsPage() {
+    const [plant1, setPlant1] = useState<SensorData[]>([]);
+    const [plant2, setPlant2] = useState<SensorData[]>([]);
+    const [page, setPage] = useState(1);
+    const limit = 30; 
     useEffect(() => {
         fetch(`/api/plants?page=${page}&limit=${limit}`)
             .then((res) => res.json())
@@ -35,9 +45,9 @@ export default function PlantsPage() {
                 <tbody>
                     {plant1.map((plant, index) => (
                         <tr key={index} className="border">
-                            <td className="border p-2">{plant.type}</td>
+                            <td className="border p-2">{plant.metadata.name}</td>
                             <td className="border p-2">{new Date(plant.timestamp).toLocaleString()}</td>
-                            <td className="border p-2">{plant.value}</td>
+                            <td className="border p-2">{plant.value} {plant.metadata.unit}</td>
                         </tr>
                     ))}
                 </tbody>
@@ -56,9 +66,9 @@ export default function PlantsPage() {
                 <tbody>
                     {plant2.map((plant, index) => (
                         <tr key={index} className="border">
-                            <td className="border p-2">{plant.type}</td>
+                            <td className="border p-2">{plant.metadata.name}</td>
                             <td className="border p-2">{new Date(plant.timestamp).toLocaleString()}</td>
-                            <td className="border p-2">{plant.value}</td>
+                            <td className="border p-2">{plant.value} {plant.metadata.unit}</td>
                         </tr>
                     ))}
                 </tbody>
