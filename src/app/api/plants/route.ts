@@ -1,5 +1,20 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
+require('dotenv').config({ path: '.env.local' });
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+
+
+// GEMINI API QUICKSTART 
+
+/* 
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const prompt = "how many tokens per request";
+
+const result = await model.generateContent(prompt);
+console.log(result.response.text());
+*/ 
+
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 25;

@@ -1,10 +1,56 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@100..800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --red: #ff0241;
+  --light-red: #ff3a6c;
+  --dark-red: #7b001f;
+  --blue: #3802ff;
+  --white: #f7f5ff;
+  --light-grey: #b0afb7;
+  --cyan: #80fdff;
+  --lightblue: #399cff;
+  --green: #02ff63;
+  --dark-green: #005d24;
+  --dark-blue-0: #0c0134;
+  --dark-blue-1: #2f3b5d; /* #2f2f5d more purple old color*/
+  --dark-blue-2: #0a0a17;
+
+  /* Dark mode */
+  /* --bg-color-0: #1d2427;
+  --bg-color-1: #161626; */
+  --bg-color-0: #37444a;
+  --bg-color-1: #282845;
+
+  --bg-color-light-0: #f7f5ff;
+  --bg-color-light-1: #bfb5e6;
+  /* --bg-color-0: #324c56;
+  --bg-color-1: #20203e; */
+  --font: var(--white);
+  --font-secondary: var(--light-grey);
+  --font-contrast: var(--dark-blue-0);
+  --content: var(--dark-blue-2);
+  --sub-content: var(--dark-blue-1);
+  --btn: var(--blue);
+  --btn-secondary: var(--sub-content);
+  --btn-font: var(--white);
+
+  /* Light mode */
+  /* --bg-color-0: #b6e1f2;
+  --bg-color-1: #7171a1;
+  --font: var(--dark-blue-0);
+  --font-contrast: var(--white);
+  --content: var(--white);
+  --sub-content: var(--bg-color-1);
+  --btn: var(--blue);
+  --btn-font: var(--font); */
+
+  --border-radius: 5px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -13,9 +59,54 @@
     --foreground: #ededed;
   }
 }
+html, body {
+  height: 100%;
+  margin: 0; 
+  padding: 0; 
+  overflow: hidden; 
+}
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+position: relative;  padding: 0;
+  margin: 0;
+  background-color: var(--white);
+  /* background: radial-gradient(ellipse at top, #151430, #0a0a17),
+    radial-gradient(ellipse at bottom, #0c3b3e, transparent); */
+  background: radial-gradient(
+      ellipse at top,
+      var(--bg-color-0),
+      var(--bg-color-1)
+    ),
+    radial-gradient(ellipse at bottom, #0c3b3e, transparent);
+  background-size: cover;
+  background-attachment: fixed;
+  background-position: center top;
+  width: 100%;
+  height: 100%;
+  color: var(--font);
+}
+
+* {
+  font-family: Sora
+}
+
+main {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.logo {
+  margin-left: 10px;
+  margin-top: 6px;
+  height: 40px;
+  width: auto;
+}
+
+.logo:hover {
+  filter:brightness(1.6);
+  cursor: pointer;
 }
