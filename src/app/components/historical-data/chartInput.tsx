@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FaArrowRight } from "react-icons/fa"; 
-import "./LLMCharts.css"; 
+
 
 export default function ChartInput({ onSubmit }: { onSubmit: (query: string) => void }) {
   const [query, setQuery] = useState("");
