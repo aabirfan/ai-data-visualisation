@@ -1,7 +1,7 @@
 "use client"
 import React, { useState } from "react";
 import './chartsTabs.css'; 
-import LLMCharts from "./lllmCharts"
+import LLMCharts from "./llmCharts"
 import ManualCharts from "./manualCharts"
 
 export default function chartTabs() {
