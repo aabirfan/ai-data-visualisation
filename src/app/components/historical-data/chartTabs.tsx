@@ -1,6 +1,6 @@
 "use client"
 import React, { useState } from "react";
-import './chartsTabs.css'; 
+import '../styles/chartsTabs.css'; 
 import LLMCharts from "./llmCharts"
 import ManualCharts from "./manualCharts"
 

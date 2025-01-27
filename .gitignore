@@ -40,3 +40,20 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Ignore the virtual environment directory
+venv/
+
+# Ignore Python cache files
+__pycache__/
+*.py[cod]
+
+# Ignore IDE-specific files (for example, VS Code)
+.vscode/
+
+# Ignore pytest cache
+.cache/
+
+# Ignore temporary files
+*.log
+*.tmp
