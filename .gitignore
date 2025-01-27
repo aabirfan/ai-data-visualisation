@@ -57,3 +57,7 @@ __pycache__/
 # Ignore temporary files
 *.log
 *.tmp
+
+.venv 
+
+.idea 
