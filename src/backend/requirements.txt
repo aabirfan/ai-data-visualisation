@@ -34,6 +34,7 @@ pyasn1_modules==0.4.1
 pydantic==2.10.6
 pydantic_core==2.27.2
 Pygments==2.19.1
+pymongo==4.11
 pyparsing==3.2.1
 python-dotenv==1.0.1
 python-multipart==0.0.20
