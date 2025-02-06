@@ -1,18 +1,15 @@
-from typing import Union
-import os
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from fastapi import FastAPI 
-import google.generativeai as genai
+import os
 from dotenv import load_dotenv
+import google.generativeai as genai
+from utils.query_processor import process_sensor_query
 
-
-app = FastAPI()
 load_dotenv("../../.env.local")
 my_api_key = os.getenv("GOOGLE_API_KEY")
-print("this is the key", my_api_key)
 
-
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
@@ -22,9 +19,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-class PromptRequest(BaseModel):
-    prompt: str
-
+class QueryRequest(BaseModel):
+    query: str
 
 def llmPrompt(query: str):
     genai.configure(api_key=my_api_key)
@@ -32,18 +28,16 @@ def llmPrompt(query: str):
     response = model.generate_content(query)
     return response.text
 
-
-
 @app.get("/")
 def read_root():
     return {"Hello": "World test"}
 
-
 @app.post("/prompt")
-async def process_prompt(prompt_request: PromptRequest):
-    query = prompt_request.prompt
-    print("this is the query:", query)
+async def process_prompt(prompt_request: QueryRequest):
+    query = prompt_request.query
     response = llmPrompt(query)
-    return {"message": f"{response}"}
+    return {"message": response}
 
-
+@app.post("/query")
+async def process_query(query_request: QueryRequest):
+    return process_sensor_query(query_request.query.lower())
