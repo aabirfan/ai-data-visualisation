@@ -1,8 +1,11 @@
 .charts-container {
     background-color: var(--content);
+    margin-block-start: 10px;
     border-radius: 5px;
-    height: 80vh;
+    height: 90vh;
     width: 1100px;
+    display: flex;
+    flex-direction: column;
 }
 
 .tab-row {

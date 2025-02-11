@@ -12,7 +12,7 @@ export default function chartTabs() {
         <div className="charts-container">
             <div className="tab-row">
                  <div className={activeTab === 'AI' ? 'active-row' : 'row'}>
-                     <button className={activeTab === "AI" ? "active-tab-btn" : "tab-btn"} onClick={() => setActiveTab("AI")}>AI Charts</button>
+                     <button className={activeTab === "AI" ? "active-tab-btn" : "tab-btn"} onClick={() => setActiveTab("AI")}>GenAI Charts</button>
                 </div>
                 <div className={activeTab === 'Manual' ? 'active-row' : 'row'}>
                     <button className={activeTab === "Manual" ? "active-tab-btn" : "tab-btn"} onClick={() => setActiveTab("Manual")}>Manual Charts</button>
@@ -20,7 +20,6 @@ export default function chartTabs() {
             </div>
             {activeTab === 'AI' && <LLMCharts />}
             {activeTab === 'Manual' && <ManualCharts />}
-
          </div>
     ); 
   }

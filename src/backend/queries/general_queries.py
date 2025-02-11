@@ -44,7 +44,10 @@ def fetch_sensor_values(start_date, end_date, sensor_name, limit=None, query_typ
             return {"message": f"Sorry, no {sensor_name} data was found for {start_date}."}
 
         unit = SENSOR_UNITS.get(sensor_name, "")
+        values = [doc["value"] for doc in results if isinstance(doc["value"], (int, float))]
+        return values
 
+        """
         if start_date == end_date:
             date_text = f"on {start_date}"
         else:
@@ -66,6 +69,7 @@ def fetch_sensor_values(start_date, end_date, sensor_name, limit=None, query_typ
             return {
                 "message": f"The recorded {sensor_name} values {date_text} are: {formatted_values} {unit}."
             }
+        """
 
     except Exception as e:
         return {"error": str(e)}
