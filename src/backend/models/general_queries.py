@@ -1,15 +1,7 @@
-from pymongo import MongoClient
-import os
-from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from functools import lru_cache
+from .database import collection
 
-load_dotenv("../../.env.local")
-MONGO_URI = os.getenv("MONGODB_URI")
-
-client = MongoClient(MONGO_URI)
-db = client["PlantDatabase"]
-collection = db["Telemetry"]  
 
 SENSOR_UNITS = {
     "pH": "",
@@ -44,7 +36,9 @@ def fetch_sensor_values(start_date, end_date, sensor_name, limit=None, query_typ
             return {"message": f"Sorry, no {sensor_name} data was found for {start_date}."}
 
         unit = SENSOR_UNITS.get(sensor_name, "")
-        values = [doc["value"] for doc in results if isinstance(doc["value"], (int, float))]
+        values = [(doc["timestamp"], doc["value"]) for doc in results if isinstance(doc["value"], (int, float))
+                   and "timestamp" in doc]
+
         return values
 
         """

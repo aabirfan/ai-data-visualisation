@@ -1,7 +1,10 @@
 from utils.date_parser import extract_date_range
 from utils.sensor_parser import extract_sensor
-from queries.general_queries import fetch_sensor_values
-
+from models.general_queries import fetch_sensor_values
+import json
+from collections import defaultdict
+from datetime import datetime
+import google.generativeai as genai
 
 
 def process_sensor_query(query_text: str):
@@ -21,11 +24,3 @@ def process_sensor_query(query_text: str):
 
     return fetch_sensor_values(start_date, end_date, sensor_name, limit=50, query_type=query_type)
 
-
-def process_llm_query(calculations):
-
-    prompt = [
-        f"You should only give out highcharts.js code. You are not given the raw data, but you are given statistical details.",
-      ],
-
-    return prompt

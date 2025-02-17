@@ -1,11 +1,9 @@
 .charts-container {
     background-color: var(--content);
-    margin-block-start: 10px;
     border-radius: 5px;
     height: 90vh;
     width: 1100px;
-    display: flex;
-    flex-direction: column;
+    position: absolute;
 }
 
 .tab-row {
@@ -35,7 +33,7 @@
     width: 50%;
     height: 100%;
     background-color: var(--content);
-    border-top: white solid 1px;
+    border-top: rgb(255, 255, 255) solid 1px;
 }
 
 
@@ -52,7 +50,6 @@
     font-weight: 600;
 
 }
-
 
 .tab-btn:hover {
     background-color: #181f32;
