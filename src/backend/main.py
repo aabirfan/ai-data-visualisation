@@ -1,17 +1,24 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import os
 from dotenv import load_dotenv
-import google.generativeai as genai
+
+
+## FUNCTION IMPORTS
 
 from utils.query_processor import process_sensor_query
-from utils.query_processor import process_llm_query
+from models.general_queries import fetch_embedded_queries
+
+from models.chart_generation import manual_chart_builder
+from models.chart_generation import llmPrompt
+
+from models.embeddings import embed_query
+from models.embeddings import vector_search
 
 from utils.data_calculations import calc_pipeline
 
 load_dotenv("../../.env.local")
-my_api_key = os.getenv("GOOGLE_API_KEY")
 
 app = FastAPI()
 
@@ -26,52 +33,32 @@ app.add_middleware(
 class QueryRequest(BaseModel):
     query: str
 
-
-
-
-generation_config = {
-  "temperature": 1,
-  "top_p": 1,
-  "top_k": 40,
-  "max_output_tokens": 8192,
-  "response_mime_type": "application/json",
-}
-
-
 @app.get("/")
 def read_root():
     return {"Hello": "World test"}
 
-@app.post("/prompt")
-async def process_prompt(prompt_request: QueryRequest):
-    query = prompt_request.query
-    response = llmPrompt(query)
-    return {"message": response}
-
 @app.post("/query")
 async def process_query(query_request: QueryRequest):
+
+    ##TIMESTAMP + VALUE 
     response = process_sensor_query(query_request.query)
-    calculations = calc_pipeline(response)
-    print("Calculations:", calculations.std_dev)  
 
-    if calculations is None:
-        return {"error": "Calculations returned None. Please check the calculation pipeline."}
-    
-    llm_response = await llmPrompt(calculations)
-    return {"message": llm_response}
+    ## VECTOR SEARCH (Embeds query and matches it with saved queries
+    ##prompt = vector_search(query_request.query)
+    ## print("prompt:", prompt)
+
+    ##response = fetch_embedded_queries(prompt)
+
+    ##print("respones", response)
 
 
-async def llmPrompt(calculations):
-    genai.configure(api_key=my_api_key)
-    model = genai.GenerativeModel(
-    "models/gemini-1.5-flash",
-    system_instruction= "You are a bot providing only Highcharts.js configuration in JSON format, specifically designed for use in TypeScript. "
-                        "The configuration should be a properly formatted JSON object" 
-                        "Make sure to include only the chart configuration starting with the 'chart' key and the rest of the Highcharts configuration as valid JSON. "
-                        "Do not include any other text or code, only the JSON object. The JSON object should have keys and string values enclosed in double quotes. No dates, only raw example data")
+    ## calculations = calc_pipeline(response)
+        
+    ## UNCOMMENT & SET AS RETURN TO ENABLE LLM PIPELINE 
+    ##llm_response = await llmPrompt(calculations)
 
-    response = model.generate_content("Chart code for PH levels for one day.")
-    ## TODO: Only example for now. Data calculations + prompt should be passed as a response below then fed with right data.
+    chart = manual_chart_builder(response)
 
-    print(response.text)
-    return response.text
+    return {"message": chart}
+
+

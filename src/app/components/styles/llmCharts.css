@@ -5,6 +5,7 @@
     align-items: center;
     color: var(--font);
     height: 90vh;
+    padding: 5px;
 }
 
 .chart-container {
@@ -21,10 +22,10 @@
 }
 
 .chart-title {
-    font-size: 20px;
-    font-weight: bold;
+    font-size: 18px;
+    font-weight: 400;
     color: white;
-    margin-bottom: 12px;
+    margin-bottom: 5px;
 }
 
 .chart-input-wrapper {
@@ -51,7 +52,7 @@
 
 .chart-input::placeholder {
     color: var(--button);
-    opacity: 0.7;
+    opacity: 0.4;
 }
 
 .chart-send-button {
@@ -96,7 +97,6 @@
 .loading {
     font-size: 16px;
     color: var(white);
-    margin-top: 10px;
 }
 
 .llm-content{

@@ -1,15 +1,8 @@
-from pymongo import MongoClient
-import os
-from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from functools import lru_cache
+from .database import collection
+import json
 
-load_dotenv("../../.env.local")
-MONGO_URI = os.getenv("MONGODB_URI")
-
-client = MongoClient(MONGO_URI)
-db = client["PlantDatabase"]
-collection = db["Telemetry"]  
 
 SENSOR_UNITS = {
     "pH": "",
@@ -44,7 +37,9 @@ def fetch_sensor_values(start_date, end_date, sensor_name, limit=None, query_typ
             return {"message": f"Sorry, no {sensor_name} data was found for {start_date}."}
 
         unit = SENSOR_UNITS.get(sensor_name, "")
-        values = [doc["value"] for doc in results if isinstance(doc["value"], (int, float))]
+        values = [(doc["timestamp"], doc["value"]) for doc in results if isinstance(doc["value"], (int, float))
+                   and "timestamp" in doc]
+
         return values
 
         """
@@ -73,3 +68,24 @@ def fetch_sensor_values(start_date, end_date, sensor_name, limit=None, query_typ
 
     except Exception as e:
         return {"error": str(e)}
+
+
+
+#### DOES NOT WORK
+def fetch_embedded_queries(prompt_str):
+
+    prompt = json.loads(prompt_str)
+
+    cursor = collection.find(prompt, {"_id": 0, "timestamp": 1, "value": 1, "metadata.asset_id": 1})
+    
+    results = list(cursor)
+
+    if not results:
+            print("No results found.")
+    else:
+            print(f"Found {len(results)} results.")
+
+    values = [(doc["timestamp"], doc["value"], doc["metadata"]["name"]) 
+                  for doc in results if "value" in doc and isinstance(doc["value"], (int, float))]
+
+    return values
