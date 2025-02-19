@@ -1,9 +1,6 @@
 from sentence_transformers import SentenceTransformer
-from pymongo import MongoClient
 from bson.binary import Binary
 from bson.binary import BinaryVectorDtype
-from dotenv import load_dotenv
-import os
 
 from .database import vector_collection as collection
 
@@ -89,9 +86,30 @@ def vector_search(query):
 
     for pipeline in pipelines:
         print(f"\nResults for {pipeline[0]['$vectorSearch']['path']}:")
-        results = collection.aggregate(pipeline)
 
-        for i in results:
-            print(i)
+        # Run the aggregation query, ensuring the pipeline is properly formatted
+        try:
+            results = collection.aggregate(pipeline)
+
+            # Convert cursor to list to access results
+            results_list = list(results)
+
+            # Print all results for debugging
+            for i in results_list:
+                print(i)
+        except Exception as e:
+            print(f"Error during aggregation: {e}")
+            return None
+
+    # If results are found, return the mongo_query field of the first result
+    if results_list:
+        print(results_list[0].get("mongo_query"))
+        return results_list[0].get("mongo_query")
+
+    return None
+
+
+
+
 
 

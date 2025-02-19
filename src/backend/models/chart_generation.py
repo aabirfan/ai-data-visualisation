@@ -2,21 +2,33 @@ import json
 from collections import defaultdict
 from datetime import datetime
 import google.generativeai as genai
+import os
+import json
+
+
+from dotenv import load_dotenv
+load_dotenv("../../.env.local")
+
 
 def llmPrompt(calculations):
     genai.configure(api_key=my_api_key)
+
     model = genai.GenerativeModel(
     "models/gemini-1.5-flash",
-    system_instruction= "You are a bot providing only Highcharts.js configuration in JSON format, specifically designed for use in TypeScript. "
+    system_instruction= "You are a bot providing only Chart.js configuration in JSON format, specifically designed for use in TypeScript. "
                         "The configuration should be a properly formatted JSON object" 
-                        "Make sure to include only the chart configuration starting with the config and the rest of the Highcharts configuration as valid JSON. "
+                        "Make sure to include only the chart configuration starting with the config and the rest of the Chart.js configuration as valid JSON. "
                         "Do not include any other text or code, only the JSON object. The JSON object should have keys and string values enclosed in double quotes. No dates, only raw example data")
 
     response = model.generate_content("Chart code for PH levels for one day.")
-    ## TODO: Only example for now. Data calculations + prompt should be passed as a response below then fed with right data.
 
-    print(response.text)
-    return response.text
+    try:
+        json_data = json.loads(response.text) 
+        print(response.text)
+        return json_data  
+    except json.JSONDecodeError as e:
+        print("Error: Invalid JSON received from LLM:", e)
+        return None 
 
 
 def parse_timestamp(timestamp_str):

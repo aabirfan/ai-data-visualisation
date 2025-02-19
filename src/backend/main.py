@@ -4,9 +4,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
+
 ## FUNCTION IMPORTS
 
 from utils.query_processor import process_sensor_query
+from models.general_queries import fetch_embedded_queries
 
 from models.chart_generation import manual_chart_builder
 from models.chart_generation import llmPrompt
@@ -38,19 +40,25 @@ def read_root():
 @app.post("/query")
 async def process_query(query_request: QueryRequest):
 
-    ## TIMESTAMP + VALUE 
-    ##response = process_sensor_query(query_request.query)
+    ##TIMESTAMP + VALUE 
+    response = process_sensor_query(query_request.query)
 
     ## VECTOR SEARCH (Embeds query and matches it with saved queries
-    response = vector_search(query_request.query)
+    ##prompt = vector_search(query_request.query)
+    ## print("prompt:", prompt)
+
+    ##response = fetch_embedded_queries(prompt)
+
+    ##print("respones", response)
+
 
     ## calculations = calc_pipeline(response)
         
     ## UNCOMMENT & SET AS RETURN TO ENABLE LLM PIPELINE 
     ##llm_response = await llmPrompt(calculations)
 
-    ##chart = chart_data(response)
+    chart = manual_chart_builder(response)
 
-    return {"message": response}
+    return {"message": chart}
 
 
