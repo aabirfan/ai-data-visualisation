@@ -9,12 +9,14 @@ import google.generativeai as genai
 
 def process_sensor_query(query_text: str):
     start_date, end_date, error_message = extract_date_range(query_text)
+
     if error_message:
-        return {"error": error_message}  
+        return {"error": "Invalid date format."}, "pH"
 
     sensor_name = extract_sensor(query_text)
-    if isinstance(sensor_name, dict): 
-        return sensor_name  
+
+    if isinstance(sensor_name, dict) and "error" in sensor_name:
+        return {"error": sensor_name["error"]}, None
 
     query_type = (
         "total" if "total" in query_text else
@@ -22,5 +24,7 @@ def process_sensor_query(query_text: str):
         "values"
     )
 
-    return fetch_sensor_values(start_date, end_date, sensor_name, limit=50, query_type=query_type)
+    return fetch_sensor_values(start_date, end_date, sensor_name, limit=50, query_type=query_type), sensor_name
+
+
 
