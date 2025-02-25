@@ -3,7 +3,7 @@ import Highcharts from "highcharts";
 import ChartInput from "./chartInput";
 import HighchartsReact from 'highcharts-react-official';
 
-import { Chart, ChartOptions, DateAdapter} from 'chart.js/auto';
+import { Chart, ChartOptions, DateAdapter } from 'chart.js/auto';
 import 'chartjs-adapter-moment';
 import "../styles/llmCharts.css";
 import "../styles/charts.css";
@@ -41,12 +41,11 @@ const ChartJs: React.FC<ChartJsCodeRendererProps> = ({ code }) => {
 
   useEffect(() => {
     if (chartData && chartOptions && chartRef.current) {
-
       if (chartInstance.current) {
         chartInstance.current.destroy(); 
       }
 
-      console.log(chartData)
+      console.log(chartData);
 
       const chartType = chartData?.type || 'line';
       console.log('Chart type being used:', chartType);
@@ -69,8 +68,6 @@ const ChartJs: React.FC<ChartJsCodeRendererProps> = ({ code }) => {
     </div>
   );
 };
-
-
 
 const HighchartsCodeRenderer: React.FC<HighchartsCodeRendererProps> = ({ code }) => {
   const [options, setOptions] = useState<Highcharts.Options | null>(null);
@@ -114,24 +111,29 @@ export default function LLMCharts() {
         body: JSON.stringify({ query }),
       });
 
-      const data: ApiResponse = await res.json();
-
+      let data: ApiResponse;
+      try {
+        data = await res.json();
+      } catch (error) {
+        console.error("Invalid JSON response:", error);
+        data = { error: "Invalid response from server." };
+      }
+      
       if (!res.ok) {
-        setResponse("Unexpected error occurred.");
+        setResponse({ error: "Unexpected error occurred." });
       } else {
-
         if (typeof data.message === "string") {
           data.message = data.message.replace(/```typescript|```|json/g, "");
         }
 
-        setResponse(data.message || "No Data Available.");
+        setResponse(data);
         console.log(data.message);
       }
     } catch (error) {
       console.error("Error sending request:", error);
-      setResponse("An error occurred while processing your request.");
+      setResponse({ error: "An error occurred while processing your request." });
     }
-
+27
     setLoading(false);
   };
 
@@ -139,9 +141,29 @@ export default function LLMCharts() {
     <div className="llm-container">
       <ChartInput onSubmit={handleChartRequest} />
       <div className="llm-content">
-        {loading && <p className="loading">Fetching data...</p>}
-          {response && <ChartJs code={response} />}
+  {loading && <p className="loading">Fetching data...</p>}
+  {response ? (
+    response.error ? (
+      <div className="error-message">
+        <p>{response.error}</p>
+        {response.error.includes("Invalid date format") ? (
+          <ul>
+            <li>Ensure the date format is <strong>YYYY-MM-DD, DD/MM/YYYY or Day Month Year</strong></li>
+            <li>Example: <strong>2022-09-27, 27/09/2022 or 27 September 2022 </strong></li>
+          </ul>
+        ) : (
+          <ul>
+            <li>Try asking for <strong>pH in</strong></li>
+            <li>Try asking for <strong>pH out</strong></li>
+            <li>Try asking for <strong>CO2 usage</strong></li>
+          </ul>
+        )}
       </div>
+    ) : (
+      <ChartJs code={response.message} />
+    )
+  ) : null}
+</div>
     </div>
   );
 }

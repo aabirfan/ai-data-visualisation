@@ -41,7 +41,7 @@ def read_root():
 async def process_query(query_request: QueryRequest):
 
     ##TIMESTAMP + VALUE 
-    response = process_sensor_query(query_request.query)
+    response, sensor_name = process_sensor_query(query_request.query) 
 
     ## VECTOR SEARCH (Embeds query and matches it with saved queries
     ##prompt = vector_search(query_request.query)
@@ -57,7 +57,12 @@ async def process_query(query_request: QueryRequest):
     ## UNCOMMENT & SET AS RETURN TO ENABLE LLM PIPELINE 
     ##llm_response = await llmPrompt(calculations)
 
-    chart = manual_chart_builder(response)
+    print(f"DEBUG: Sensor Name received in process_query: {sensor_name}")
+
+    if isinstance(response, dict) and "error" in response:
+        return {"error": response["error"]}
+
+    chart = manual_chart_builder(response, sensor_name=sensor_name)  
 
     return {"message": chart}
 
