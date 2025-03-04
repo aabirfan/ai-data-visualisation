@@ -3,32 +3,16 @@ from collections import defaultdict
 from datetime import datetime
 import google.generativeai as genai
 import os
-import json
-
 from dotenv import load_dotenv
+from datetime import datetime
+from utils.data_calculations import calc_pipeline
+from models.llm_chart import generate_llm_chart_config, fill_llm_chart_data
+from models.embeddings import process_user_query
+
+
+
 load_dotenv("../../.env.local")
-
-
-def llmPrompt(calculations):
-    genai.configure(api_key=my_api_key)
-
-    model = genai.GenerativeModel(
-    "models/gemini-1.5-flash",
-    system_instruction= "You are a bot providing only Chart.js configuration in JSON format, specifically designed for use in TypeScript. "
-                        "The configuration should be a properly formatted JSON object" 
-                        "Make sure to include only the chart configuration starting with the config and the rest of the Chart.js configuration as valid JSON. "
-                        "Do not include any other text or code, only the JSON object. The JSON object should have keys and string values enclosed in double quotes. No dates, only raw example data")
-
-    response = model.generate_content("Chart code for sensor data for one day.")
-
-    try:
-        json_data = json.loads(response.text) 
-        print(response.text)
-        return json_data  
-    except json.JSONDecodeError as e:
-        print("Error: Invalid JSON received from LLM:", e)
-        return None 
-
+my_api_key = os.getenv("GEMINI_API_KEY")
 
 def parse_timestamp(timestamp_str):
     return datetime.fromisoformat(timestamp_str)
@@ -62,9 +46,7 @@ def manual_chart_builder(nums, sensor_name="Unknown Sensor"):
     }
 
     normalized_sensor_name = sensor_name.strip()
-
     chart_label = sensor_label_map.get(normalized_sensor_name, "Unknown Sensor")
-
 
     chart_config = {
         "type": "line",
@@ -83,18 +65,26 @@ def manual_chart_builder(nums, sensor_name="Unknown Sensor"):
                     "type": "time",
                     "time": {
                         "unit": "hour",
-                        "displayFormats": {
-                            "hour": "HH"
-                        },
+                        "displayFormats": {"hour": "HH"},
                     },
-                
                 },
                 "y": {
-                    "grid": {
-                        "color": "rgba(255, 255, 255, 0.2)",
-                    }
+                    "grid": {"color": "rgba(255, 255, 255, 0.2)"},
                 }
             }
         }
     }
     return json.dumps(chart_config)
+
+def generate_chart(query):
+    sensor_data, sensor_name = process_user_query(query)
+
+    if isinstance(sensor_data, dict) and "error" in sensor_data:
+        return {"error": sensor_data["error"]}
+
+    if query.lower().startswith("manual"):
+        return {"message": manual_chart_builder(sensor_data, sensor_name)}
+
+    llm_chart_code = generate_llm_chart_config(sensor_name, len(sensor_data))
+
+    return {"message": fill_llm_chart_data(llm_chart_code, sensor_data)} if llm_chart_code else {"error": "Failed to generate chart"}

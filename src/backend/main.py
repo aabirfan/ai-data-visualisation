@@ -11,7 +11,8 @@ from utils.query_processor import process_sensor_query
 from models.general_queries import fetch_embedded_queries
 
 from models.chart_generation import manual_chart_builder
-from models.chart_generation import llmPrompt
+from models.chart_generation import generate_chart
+from models.embeddings import process_user_query
 
 from models.embeddings import embed_query
 from models.embeddings import vector_search
@@ -62,8 +63,9 @@ async def process_query(query_request: QueryRequest):
     if isinstance(response, dict) and "error" in response:
         return {"error": response["error"]}
 
-    chart = manual_chart_builder(response, sensor_name=sensor_name)  
+    #Temporary, the prompt has to start with manual to receive a manual chart
+    if query_request.query.lower().startswith("manual"):
+        chart = manual_chart_builder(response, sensor_name=sensor_name)
+        return {"message": chart}
 
-    return {"message": chart}
-
-
+    return process_user_query(query_request.query)
