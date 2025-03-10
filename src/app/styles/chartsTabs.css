@@ -7,8 +7,10 @@
 }
 
 .tab-row {
-    height: 35px;
+    position: relative;
+    height: 30px;
     background-color: #242D48;
+    z-index: 3;
 }
 
 .row {

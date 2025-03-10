@@ -10,4 +10,4 @@ db = client["PlantDatabase"]
 
 collection = db["Telemetry"]  
 vector_collection = db["queries"]
-
+chart_archive_collection = db["archived_charts"]

@@ -1,0 +1,141 @@
+import { useState, useRef, useEffect } from "react";
+import ChartInput from "./chartInput";
+import { saveGraph } from "../../../utils/archive_graph";
+import { Chart } from 'chart.js/auto';
+import { handleChartRequest } from "../../../utils/chartUtils";
+import {Dialog} from "@/app/modals/dialog_modal";
+import { FaArrowRight } from "react-icons/fa"; 
+
+import 'chartjs-adapter-moment';
+import "../../../styles/llmCharts.css";
+import "../../../styles/charts.css";
+
+
+interface ChartJsCodeRendererProps {
+  chartData: any;
+  chartOptions: any;
+  chartType: any;
+}
+
+interface llmChartProps {
+  loading: boolean; 
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const ChartJs: React.FC<ChartJsCodeRendererProps> = ({ chartData, chartOptions, chartType }) => {
+  const chartRef = useRef<HTMLCanvasElement | null>(null);
+  const chartInstance = useRef<Chart | null>(null);
+
+  useEffect(() => {
+    if (chartData && chartOptions && chartRef.current) {
+      if (chartInstance.current) {
+        chartInstance.current.destroy();
+      }
+
+      chartInstance.current = new Chart(chartRef.current, {
+        type: chartType,
+        options: chartOptions,
+        data: chartData,
+      });
+    }
+  }, [chartData, chartOptions, chartType]);
+
+  if (!chartData) {
+    return <p>Loading chart...</p>;
+  }
+
+  return (
+    <div className="graph-container">
+      <canvas ref={chartRef} />
+    </div>
+  );
+};
+
+function LLMCharts({ loading, setLoading }: llmChartProps) {
+  const [response, setResponse] = useState<any | null>(null);
+  const [chartData, setChartData] = useState<any | null>(null);
+  const [chartOptions, setChartOptions] = useState<any | null>(null);
+  const [chartType, setChartType] = useState<string>("line");
+  const [isModalOpen, setModalOpen] = useState(false)
+  const [chartTitle, setChartTitle] = useState<string>("");
+  const [chartDescription, setChartDescription] = useState<string>("");
+
+
+  const openModal = () => setModalOpen(true);
+  const closeModal = () => setModalOpen(false);
+
+  return (
+    <div className="llm-container">
+      
+      <ChartInput onSubmit={(query) => handleChartRequest(query, setLoading, setResponse, setChartData, setChartOptions, setChartType)} loading={loading} />
+
+      <Dialog isOpen={isModalOpen} onClose={closeModal}>
+            <div className="modal-title">
+              <h2>Save Chart...</h2>
+            </div>
+            <form className="save-chart-input">
+              <h3>Title:</h3>
+              <input
+                type="text"
+                placeholder="Enter title..."
+                className="save-input"
+                value={chartTitle}
+                onChange={(e) => setChartTitle(e.target.value)}
+              />
+              <h3>Description:</h3>
+              <input
+                type="text"
+                placeholder="Enter description..."
+                className="save-input"
+                value={chartDescription}
+                onChange={(e) => setChartDescription(e.target.value)}
+              />
+            </form>
+
+            <div className="save-btn">
+              <button
+                onClick={() => {
+                  saveGraph(chartData, chartOptions, chartType, chartTitle, chartDescription); 
+                  setModalOpen(false);
+                }}
+              >
+                Save Chart
+              </button>
+            </div>
+          </Dialog> 
+
+      <div className="llm-content">
+        {loading && <p className="loading">Fetching data...</p>}
+        {response ? (
+          response.error ? (
+            <div className="error-message">
+              <p>{response.error}</p>
+              {response.error.includes("Invalid date format") ? (
+                <ul>
+                  <li>Ensure the date format is <strong>YYYY-MM-DD, DD/MM/YYYY or Day Month Year</strong></li>
+                  <li>Example: <strong>2022-09-27, 27/09/2022 or 27 September 2022</strong></li>
+                </ul>
+              ) : (
+                <ul>
+                  <li>Try asking for <strong>pH in</strong></li>
+                  <li>Try asking for <strong>pH out</strong></li>
+                  <li>Try asking for <strong>CO2 usage</strong></li>
+                </ul>
+              )}
+            </div>
+          ) : (
+            <>
+              <ChartJs chartData={chartData} chartOptions={chartOptions} chartType={chartType} />
+
+              <div className="save-btn">
+                <button onClick={() => setModalOpen(true)}>Save chart...</button>
+              </div>
+            </>
+          )
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+export {LLMCharts, ChartJs}
