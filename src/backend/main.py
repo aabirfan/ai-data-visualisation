@@ -3,6 +3,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
+from typing import Any
+from fastapi import HTTPException
+import json
+from fastapi.responses import JSONResponse
+
+
 
 
 ## FUNCTION IMPORTS
@@ -19,6 +25,10 @@ from models.embeddings import vector_search
 
 from utils.data_calculations import calc_pipeline
 
+from models.chart_archiving import addArchivedChart
+from models.chart_archiving import get_chart_data
+from models.chart_archiving import remove_saved_data
+
 load_dotenv("../../.env.local")
 
 app = FastAPI()
@@ -33,6 +43,17 @@ app.add_middleware(
 
 class QueryRequest(BaseModel):
     query: str
+
+class ChartData(BaseModel):
+    chartData: Any
+    chartOptions: Any
+    chartType: str
+    date: int
+    title: str
+    description: str
+
+class removeData(BaseModel):
+    timestamp: int
 
 @app.get("/")
 def read_root():
@@ -69,3 +90,31 @@ async def process_query(query_request: QueryRequest):
         return {"message": chart}
 
     return process_user_query(query_request.query)
+
+
+@app.post("/save_chart")
+async def process_saving_chart(data: ChartData):
+    try:
+        # Convert the ChartData to a dictionary and then to a JSON string
+        chart_dict = data.dict()  # Convert the Pydantic model to a dictionary
+        chart_json = json.dumps(chart_dict)  # Convert the dictionary to a JSON string
+
+        addArchivedChart(chart_json)
+
+        return {"message": "Chart saved successfully!"}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
+    
+
+@app.get("/get_chart_data")
+async def process_getting_saved_charts():
+   list = get_chart_data()
+   print(list)
+   return JSONResponse(content={"data": list})  
+
+@app.post("/remove_saved_chart")
+async def remove_saved_chart(data: removeData):
+    post_id = data.timestamp
+    remove_saved_data(post_id)
+    return JSONResponse(content={"data": post_id})   
