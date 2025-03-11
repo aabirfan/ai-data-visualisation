@@ -22,6 +22,7 @@ from models.embeddings import process_user_query
 
 from models.embeddings import embed_query
 from models.embeddings import vector_search
+from models.llm_pipeline import process_llm_pipeline
 
 from utils.data_calculations import calc_pipeline
 
@@ -88,8 +89,13 @@ async def process_query(query_request: QueryRequest):
     if query_request.query.lower().startswith("manual"):
         chart = manual_chart_builder(response, sensor_name=sensor_name)
         return {"message": chart}
+    
+    #Temporary, the prompt has to start with rag to receive a rag chart
+    if query_request.query.lower().startswith("rag"):
+        return process_user_query(query_request.query)  
 
-    return process_user_query(query_request.query)
+    #PIPELINE 3
+    return process_llm_pipeline(query_request.query)
 
 
 @app.post("/save_chart")
@@ -118,3 +124,4 @@ async def remove_saved_chart(data: removeData):
     post_id = data.timestamp
     remove_saved_data(post_id)
     return JSONResponse(content={"data": post_id})   
+

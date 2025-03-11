@@ -2,9 +2,6 @@ import json
 import google.generativeai as genai
 import os
 from dotenv import load_dotenv
-from datetime import datetime
-from collections import defaultdict 
-from datetime import datetime
 import json
 
 load_dotenv("../../.env.local")
@@ -21,9 +18,9 @@ model = genai.GenerativeModel(
     )
 )
 
-def generate_llm_chart_config(sensor_name, num_data_points):
+def generate_llm_chart_config(sensor_name, num_data_points, query):
     reference_chart = {
-        "type": "line",
+        "type": "line",  
         "data": {
             "labels": [],
             "datasets": [{
@@ -34,13 +31,11 @@ def generate_llm_chart_config(sensor_name, num_data_points):
             }]
         },
         "options": {
-            "scales": {  
+            "scales": {
                 "x": {
-                    "type": "time",
-                    "time": {
-                        "unit": "hour",
-                        "displayFormats": {"hour": "HH"}
-                    },
+                    "type": "category",
+                    "labels": [],
+                    "ticks": {"autoSkip": True, "maxTicksLimit": 10}
                 },
                 "y": {
                     "grid": {"color": "rgba(255, 255, 255, 0.2)"}
@@ -50,16 +45,25 @@ def generate_llm_chart_config(sensor_name, num_data_points):
     }
 
     prompt = f"""
-    Generate a valid Chart.js configuration for visualizing {sensor_name} sensor data.
+    Based on the following user query, determine the best chart type and generate a valid Chart.js configuration.
 
-    Reference Example (Mimic this format but adjust for new data):
+    **User Query:** "{query}"
+    **Sensor Name:** {sensor_name}
+    **Number of Data Points:** {num_data_points}
+
+    **Guidelines for Selecting Chart Type:**
+    - **Line Chart** (default): Used for continuous time-series data.
+    - **Bar Chart**: Use if comparing categories or summing values per category.
+    - **Scatter Plot**: Use if plotting individual data points without continuous trends.
+    - **Pie Chart**: Use if showing percentage breakdowns of categories.
+    
+    **Format Rules:**
+    - The output **must be a valid JSON object**.
+    - Use `"type"` to specify the correct chart type.
+    - Labels should match the dataset structure.
+
+    **Example Format:**
     {json.dumps(reference_chart, indent=2)}
-
-    Context Information:
-    - Sensor Name: {sensor_name}
-    - Number of Data Points: {num_data_points}
-    - Ensure placeholders (`[]`) for labels and data, which will be dynamically filled later.
-    - DO NOT include explanations, markdown (```), or any surrounding text.
     """
 
     try:
@@ -76,14 +80,14 @@ def generate_llm_chart_config(sensor_name, num_data_points):
         if clean_response.startswith("```json"):
             clean_response = clean_response[7:] 
         if clean_response.endswith("```"):
-            clean_response = clean_response[:-3] 
-
-        print(f"DEBUG: Cleaned LLM Response: {repr(clean_response)}")
+            clean_response = clean_response[:-3]
 
         chart_config = json.loads(clean_response)
+
         if "type" not in chart_config or "data" not in chart_config:
             raise ValueError("Invalid Chart.js configuration format")
 
+        print(f"DEBUG: LLM Selected Chart Type: {chart_config['type']}")
         return chart_config
 
     except json.JSONDecodeError as e:
@@ -96,82 +100,5 @@ def generate_llm_chart_config(sensor_name, num_data_points):
         print("LLM Error:", str(e))
         return None
 
-"""
-def fill_llm_chart_data(chart_config, sensor_data):
-    if not chart_config or not isinstance(chart_config, dict):
-        print("ERROR: Invalid chart config")
-        return None
 
-    try:
-        if not isinstance(sensor_data, list) or not all(isinstance(d, tuple) and len(d) == 2 for d in sensor_data):
-            print("ERROR: sensor_data is not in the expected format (list of (timestamp, value) tuples)")
-            return None
-
-        labels = [datetime.strptime(str(data[0]), "%Y-%m-%d %H:%M:%S").isoformat() for data in sensor_data]
-        values = [data[1] for data in sensor_data]
-
-        if "data" not in chart_config or "datasets" not in chart_config["data"] or not chart_config["data"]["datasets"]:
-            print("ERROR: Chart.js config is missing required fields")
-            return None
-
-        chart_config["data"]["labels"] = labels
-        chart_config["data"]["datasets"][0]["data"] = values
-
-        print("Successfully filled LLM-generated chart with sensor data")
-
-        return json.dumps(chart_config)
-
-    except Exception as e:
-        print("ERROR while filling chart data:", str(e))
-        return None
-
-"""
-### WORK IN PROGRESS (Seperate Lines for seperate dates)
-
-def fill_llm_chart_data(chart_config, sensor_data):
-    if not chart_config or not isinstance(chart_config, dict):
-        print("ERROR: Invalid chart config")
-        return None
-
-    try:
-        grouped_data = defaultdict(list)
-
-        for timestamp, value in sensor_data:
-            if isinstance(timestamp, datetime):  
-                dt = timestamp
-            else:
-                dt = datetime.strptime(str(timestamp), "%Y-%m-%d %H:%M:%S")
-
-            date_str = dt.date().isoformat()  
-            grouped_data[date_str].append((dt, value))
-
-        chart_config["data"]["datasets"] = []
-        unique_timestamps = set()
-        colors = ["rgb(0, 243, 255)", "rgb(255, 99, 132)", "rgb(75, 192, 192)", "rgb(255, 206, 86)"]
-
-        for idx, (date, values) in enumerate(grouped_data.items()):
-            values.sort()  
-
-            timestamps = [dt.isoformat() for dt, _ in values]
-            sensor_values = [value for _, value in values]
-
-            unique_timestamps.update(timestamps)
-
-            dataset = {
-                "label": f"{date} Data",
-                "data": sensor_values,
-                "borderColor": colors[idx % len(colors)],
-                "backgroundColor": colors[idx % len(colors)]
-            }
-
-            chart_config["data"]["datasets"].append(dataset)
-
-        chart_config["data"]["labels"] = sorted(unique_timestamps)
-
-        print("CHart data is filled")
-        return json.dumps(chart_config)
-
-    except Exception as e:
-        print("ERROR while filling chart data:", str(e))
-        return None
 

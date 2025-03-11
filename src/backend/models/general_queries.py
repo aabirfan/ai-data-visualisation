@@ -1,7 +1,7 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from functools import lru_cache
-from pymongo import MongoClient
-from .database import collection
+from pymongo import MongoClient, ASCENDING
+from .database import collection as Telemetry
 import json
 
 client = MongoClient("mongodb+srv://aaban:1LNXEejICzbHQTet@llmcluster.x91zk.mongodb.net/PlantDatabase?retryWrites=true&w=majorityng")
@@ -54,32 +54,12 @@ def fetch_sensor_values(start_date, end_date, sensor_name, limit=None, query_typ
 
         return values
 
-        """
-        if start_date == end_date:
-            date_text = f"on {start_date}"
-        else:
-            date_text = f"from {start_date} to {end_date}"
-
-        if query_type == "total":
-            total_value = sum(doc["value"] for doc in results if isinstance(doc["value"], (int, float)))
-            return {"message": f"The total {sensor_name} value {date_text} is {round(total_value, 2)} {unit}."}
-
-        elif query_type == "average":
-            values = [doc["value"] for doc in results if isinstance(doc["value"], (int, float))]
-            avg_value = sum(values) / len(values) if values else 0
-            return {"message": f"The average {sensor_name} value {date_text} is {round(avg_value, 2)} {unit}."}
-
-        elif query_type == "values":
-            values_list = [str(doc["value"]) for doc in results if isinstance(doc["value"], (int, float))]
-            formatted_values = ", ".join(values_list)
-
-            return {
-                "message": f"The recorded {sensor_name} values {date_text} are: {formatted_values} {unit}."
-            }
-        """
-
     except Exception as e:
         return {"error": str(e)}
+    
+
+
+
 # Work in progress
 def fetch_embedded_queries(user_query):
   
@@ -136,26 +116,3 @@ def fetch_embedded_queries(user_query):
         print(f"DEBUG: MongoDB Query Execution Error: {e}")
         return {"error": f"MongoDB execution error: {e}"}
 
-
-
-
-"""
-#### DOES NOT WORK
-def fetch_embedded_queries(prompt_str):
-
-    prompt = json.loads(prompt_str)
-
-    cursor = collection.find(prompt, {"_id": 0, "timestamp": 1, "value": 1, "metadata.asset_id": 1})
-    
-    results = list(cursor)
-
-    if not results:
-        print("No results found.")
-    else:
-        print(f"Found {len(results)} results.")
-
-    values = [(doc["timestamp"], doc["value"], doc["metadata"]["name"]) 
-              for doc in results if "value" in doc and isinstance(doc["value"], (int, float))]
-
-    return values
-"""

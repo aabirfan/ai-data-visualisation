@@ -29,3 +29,4 @@ def calc_pipeline(data):
     length = calc_length(data)
     return calculations(std_dev, avg, median, length)
 
+

@@ -2,10 +2,10 @@ from sentence_transformers import SentenceTransformer, util
 from bson.binary import Binary, BinaryVectorDtype
 from datetime import datetime, timezone
 import re
-
 from .database import vector_collection  
 from .database import collection as Telemetry
-from models.llm_chart import generate_llm_chart_config, fill_llm_chart_data
+from models.llm_chart import generate_llm_chart_config
+from models.fill_chart import fill_llm_chart_data
 from utils.data_calculations import calc_pipeline
 
 model = SentenceTransformer("nomic-ai/nomic-embed-text-v1", trust_remote_code=True)
@@ -184,7 +184,7 @@ def execute_mongo_query(final_queries):
 
     return results
 
-######### FULL RUN FOR SCRIPT
+######### PIPELINE 2 RUN
 
 def process_user_query(user_query):
     query_template, matched_query = vector_search(user_query)
@@ -194,8 +194,8 @@ def process_user_query(user_query):
 
     object_name, dates, error = extract_variables(user_query)
 
-    if error:
-        return {"error": error}
+    if error or object_name is None:
+        object_name = "Unknown"  
 
     final_queries = fill_query(query_template, object_name, dates)
 
@@ -210,16 +210,14 @@ def process_user_query(user_query):
     sensor_data = [(doc["timestamp"], doc["value"]) for doc in raw_results]
 
     data_summary = calc_pipeline([val for _, val in sensor_data])
-    print(f"DEBUG: data_summary: {data_summary}")
-    print(f"DEBUG: data_summary.length: {getattr(data_summary, 'length', 'MISSING')}")
+    print(f"DEBUG: Sensor: {object_name}, Data Count: {data_summary.length}")
 
-    
     llm_chart_config = generate_llm_chart_config(object_name, data_summary.length)
 
-
-    final_chart = fill_llm_chart_data(llm_chart_config, sensor_data)
+    final_chart = fill_llm_chart_data(llm_chart_config, sensor_data, sensor_label=object_name)
 
     return {"message": final_chart}
+
 
 
 if __name__ == "__main__":
