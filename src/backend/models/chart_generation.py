@@ -5,7 +5,6 @@ import google.generativeai as genai
 import os
 from dotenv import load_dotenv
 from datetime import datetime
-from utils.data_calculations import calc_pipeline
 from models.llm_chart import generate_llm_chart_config
 from models.embeddings import process_user_query
 from models.fill_chart import fill_llm_chart_data, fill_pie_chart_data
