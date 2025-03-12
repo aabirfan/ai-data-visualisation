@@ -1,4 +1,4 @@
-from models.chart_generation import fill_llm_chart_data
+from models.fill_chart import fill_llm_chart_data_pipeline3
 from utils.data_calculations import calc_pipeline  
 from models.llm_chart import generate_llm_chart_config
 from models.fill_chart import fill_pie_chart_data
@@ -15,7 +15,11 @@ def process_llm_pipeline(user_query):
 
     print(f"DEBUG: Type of mongo_query BEFORE execution: {type(mongo_query)}")
 
-    if isinstance(mongo_query, list):
+    
+    query_is_pie_chart = isinstance(mongo_query, list) and any("$group" in step for step in mongo_query)
+
+    if query_is_pie_chart:
+
         sensor_data = execute_pie_chart_query(mongo_query)
     else:
         sensor_data = execute_mongo_query(mongo_query)
@@ -44,4 +48,4 @@ def process_llm_pipeline(user_query):
     if not chart_config:
         return {"error": "LLM failed to generate Chart.js config."}
 
-    return {"message": fill_llm_chart_data(chart_config, sensor_data, sensor_label)}
+    return {"message": fill_llm_chart_data_pipeline3(chart_config, sensor_data, sensor_label)}

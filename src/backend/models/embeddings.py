@@ -5,7 +5,7 @@ import re
 from .database import vector_collection  
 from .database import collection as Telemetry
 from models.llm_chart import generate_llm_chart_config
-from models.fill_chart import fill_llm_chart_data
+from models.fill_chart import fill_llm_chart_data_pipeline2
 from utils.data_calculations import calc_pipeline
 
 model = SentenceTransformer("nomic-ai/nomic-embed-text-v1", trust_remote_code=True)
@@ -187,18 +187,24 @@ def execute_mongo_query(final_queries):
 ######### PIPELINE 2 RUN
 
 def process_user_query(user_query):
+    #Perform vector search
     query_template, matched_query = vector_search(user_query)
 
+    #Error if not template found
     if not query_template:
         return {"error": "No matching query template found."}
 
+    #Extrat sensor name and dates from user query
     object_name, dates, error = extract_variables(user_query)
 
+    #If extraction fails, it uses unknown automatically
     if error or object_name is None:
         object_name = "Unknown"  
 
+    #Fill mongo template
     final_queries = fill_query(query_template, object_name, dates)
 
+    #Check if filling failed
     if not final_queries:
         return {"error": "Query filling failed."}
 
@@ -206,15 +212,23 @@ def process_user_query(user_query):
 
     if any("error" in res for res in raw_results):
         return {"error": raw_results[0]["error"]}
-
+    
+    #Extract pairs of values (timestamp and value) for results
     sensor_data = [(doc["timestamp"], doc["value"]) for doc in raw_results]
 
     data_summary = calc_pipeline([val for _, val in sensor_data])
     print(f"DEBUG: Sensor: {object_name}, Data Count: {data_summary.length}")
 
-    llm_chart_config = generate_llm_chart_config(object_name, data_summary.length)
+    llm_chart_config = generate_llm_chart_config(object_name, data_summary.length, user_query)
 
-    final_chart = fill_llm_chart_data(llm_chart_config, sensor_data, sensor_label=object_name)
+    #Set sensor data as a list of dictionaries for chart generation
+    sensor_data_dicts = [
+    {"timestamp": timestamp, "value": value}
+    for timestamp, value in sensor_data
+]
+
+    final_chart = fill_llm_chart_data_pipeline2(llm_chart_config, sensor_data_dicts, sensor_label=object_name)
+
 
     return {"message": final_chart}
 

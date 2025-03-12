@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from datetime import datetime
 from models.llm_chart import generate_llm_chart_config
 from models.embeddings import process_user_query
-from models.fill_chart import fill_llm_chart_data, fill_pie_chart_data
+from models.fill_chart import fill_llm_chart_data_pipeline3, fill_pie_chart_data
 
 
 load_dotenv("../../.env.local")
@@ -132,4 +132,4 @@ def generate_chart(query):
         print("INFO: Generating pie chart format.")
         return {"message": fill_pie_chart_data(llm_chart_code, sensor_data)}
 
-    return {"message": fill_llm_chart_data(llm_chart_code, sensor_data)} if llm_chart_code else {"error": "Failed to generate chart"}
+    return {"message": fill_llm_chart_data_pipeline3(llm_chart_code, sensor_data)} if llm_chart_code else {"error": "Failed to generate chart"}
