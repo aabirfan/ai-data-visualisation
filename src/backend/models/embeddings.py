@@ -4,9 +4,9 @@ from datetime import datetime, timezone
 import re
 from .database import vector_collection  
 from .database import collection as Telemetry
-from models.llm_chart import generate_llm_chart_config
-from models.fill_chart import fill_llm_chart_data
-from utils.data_calculations import calc_pipeline
+from utils.chart_utils import generate_chart_from_query_results
+from utils.date_parser import extract_all_dates
+from utils.mongo_executor import execute_queries
 
 model = SentenceTransformer("nomic-ai/nomic-embed-text-v1", trust_remote_code=True)
 nlp_model = SentenceTransformer("all-MiniLM-L6-v2")
@@ -95,45 +95,39 @@ def get_existing_sensor_names():
     return Telemetry.distinct("metadata.name")
 
 def extract_variables(user_query):
-    
-    # Date extraction
-    date_pattern = r"\b\d{1,2}/\d{1,2}/\d{4}\b"
-    dates = re.findall(date_pattern, user_query)
+    extracted_dates, mongo_dates, error_message = extract_all_dates(user_query)
 
-    if not dates:
-        print("Could not extract valid dates.")
-        return None, None, "Could not extract valid dates."
+    if error_message:
+        print(error_message)
+        return None, None, error_message
 
-    # Convert dates
-    mongo_dates = [
-        datetime.strptime(date, "%d/%m/%Y").replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=timezone.utc)
-        for date in dates
-    ]
-
-    # Fetch sensor name
     sensor_names = get_existing_sensor_names()
     if not sensor_names:
         print("No sensor names found in database.")
         return None, None, "No sensor names found in database."
 
-    # Find sensor match using text embeddings
     query_embedding = nlp_model.encode(user_query)
     sensor_embeddings = nlp_model.encode(sensor_names)
 
     similarity_scores = util.pytorch_cos_sim(query_embedding, sensor_embeddings)[0].tolist()
     
-    #Best matching sensor through similarity scores
-    best_match_index = similarity_scores.index(max(similarity_scores))
-    best_match = sensor_names[best_match_index]
+    threshold = 0.7  
+    matched_sensors = [
+        sensor_names[i] for i, score in enumerate(similarity_scores) if score >= threshold
+    ]
 
-    print(f"Best Matched Sensor: {best_match}")
+    if not matched_sensors:
+        print("No strong sensor match found, defaulting to best match.")
+        matched_sensors = [sensor_names[similarity_scores.index(max(similarity_scores))]]
 
-    return best_match, mongo_dates, None
+    print(f"Matched Sensors: {matched_sensors}")
+    return matched_sensors, mongo_dates, None
+
 
 
 ######### FILL MONGO QUERY TEMPLATE
 
-def fill_query(template_query, object_name, dates):
+def fill_query(template_query, object_names, dates):
     if not template_query:
         print("No template query found")
         return None
@@ -152,37 +146,24 @@ def fill_query(template_query, object_name, dates):
                 "$gte": date.replace(hour=0, minute=0, second=0, tzinfo=timezone.utc),
                 "$lt": date.replace(hour=23, minute=59, second=59, tzinfo=timezone.utc)
             }
-            query_filled["metadata.name"] = object_name
+
+            if isinstance(object_names, list) and len(object_names) > 1:
+                query_filled["metadata.name"] = {"$in": object_names}
+            else:
+                query_filled["metadata.name"] = object_names[0]  
+
             filled_queries.append(query_filled)
         except KeyError:
-            print(f"Template query is fields for date {date}!")
+            print(f"Template query is missing fields for date {date}!")
             return None
 
     return filled_queries  
 
+
 ######### QUERY EXECUTION
 
-def execute_mongo_query(final_queries):
-    results = []
-    for query in final_queries:
-        if not isinstance(query, dict):
-            print(f" Query is NOT a dictionary! It is: {type(query)}")
-            continue
-
-        print(f"\nMongoDB Query:\n{query}")
-
-        query_results = list(Telemetry.find(query, {"_id": 0}))
-
-        if query_results:
-            print("\nResults:")
-            for doc in query_results:
-                print(doc)
-            results.extend(query_results)
-        else:
-            print(f"No data found for {query['timestamp']}.")
-            results.append({"error": f"No data found for {query['timestamp']}."})
-
-    return results
+def process_pipeline_2_queries(filled_queries):
+    return execute_queries(filled_queries)
 
 ######### PIPELINE 2 RUN
 
@@ -195,30 +176,16 @@ def process_user_query(user_query):
     object_name, dates, error = extract_variables(user_query)
 
     if error or object_name is None:
-        object_name = "Unknown"  
+        object_name = "Unknown"
 
     final_queries = fill_query(query_template, object_name, dates)
 
     if not final_queries:
         return {"error": "Query filling failed."}
 
-    raw_results = execute_mongo_query(final_queries)
+    raw_results = execute_queries(final_queries)
 
-    if any("error" in res for res in raw_results):
-        return {"error": raw_results[0]["error"]}
-
-    sensor_data = [(doc["timestamp"], doc["value"]) for doc in raw_results]
-
-    data_summary = calc_pipeline([val for _, val in sensor_data])
-    print(f"DEBUG: Sensor: {object_name}, Data Count: {data_summary.length}")
-
-    llm_chart_config = generate_llm_chart_config(object_name, data_summary.length)
-
-    final_chart = fill_llm_chart_data(llm_chart_config, sensor_data, sensor_label=object_name)
-
-    return {"message": final_chart}
-
-
+    return generate_chart_from_query_results(user_query, raw_results)
 
 if __name__ == "__main__":
     embed_query()
