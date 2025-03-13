@@ -74,7 +74,7 @@ def generate_chart_config(chart_config, grouped_data, all_timestamps, interval_m
     return json.dumps(chart_config)
 
 
-def fill_llm_chart_data_pipeline2(chart_config, sensor_data, sensor_label="Sensor Data", interval_minutes=5):
+def fill_llm_chart_data(chart_config, sensor_data, sensor_label=None, interval_minutes=5):
     if not isinstance(interval_minutes, int):
         interval_minutes = 5
 
@@ -85,12 +85,16 @@ def fill_llm_chart_data_pipeline2(chart_config, sensor_data, sensor_label="Senso
         grouped_data = defaultdict(lambda: defaultdict(dict))  
         all_timestamps = []
 
-        print("Sensor Data Length:", len(sensor_data))
+        print(f"DEBUG: Incoming Sensor Data Length: {len(sensor_data)}")
 
         for entry in sensor_data:
             timestamp = entry.get("timestamp")
             value = entry.get("value")
-            sensor_name = sensor_label  
+
+            if isinstance(sensor_label, list):
+                sensor_name = entry["metadata"]["name"] if "metadata" in entry and "name" in entry["metadata"] else "Unknown Sensor"
+            else:
+                sensor_name = sensor_label  
 
             if timestamp is None or value is None:
                 continue  
@@ -113,52 +117,10 @@ def fill_llm_chart_data_pipeline2(chart_config, sensor_data, sensor_label="Senso
         return generate_chart_config(chart_config, grouped_data, all_timestamps, interval_minutes)
 
     except Exception as e:
-        print("Error while filling chart data (Pipeline 2):", str(e))
+        print("ERROR while filling chart data:", str(e))
         return None
 
 
-def fill_llm_chart_data_pipeline3(chart_config, sensor_data, interval_minutes=5):
-    if not isinstance(interval_minutes, int):
-        interval_minutes = 5
-
-    if not chart_config or not isinstance(chart_config, dict):
-        return None
-
-    try:
-        grouped_data = defaultdict(lambda: defaultdict(dict))  
-        all_timestamps = []
-
-        print("Incoming Sensor Data Length:", len(sensor_data))
-
-        for entry in sensor_data:
-            timestamp = entry.get("timestamp")
-            value = entry.get("value")
-
-            sensor_name = entry["metadata"]["name"] if "metadata" in entry and "name" in entry["metadata"] else "Unknown Sensor"
-
-            if timestamp is None or value is None:
-                continue  
-
-            dt = timestamp if isinstance(timestamp, datetime) else datetime.fromisoformat(str(timestamp))
-            all_timestamps.append(dt)
-
-            time_str = dt.strftime("%H:%M")  
-            date_str = dt.date().isoformat()  
-
-            if date_str not in grouped_data[sensor_name]:
-                grouped_data[sensor_name][date_str] = {}
-
-            grouped_data[sensor_name][date_str][time_str] = value  
-
-        if not all_timestamps:
-            print("ERROR: No valid timestamps found.")
-            return None
-
-        return generate_chart_config(chart_config, grouped_data, all_timestamps, interval_minutes)
-
-    except Exception as e:
-        print("Error while filling chart data (Pipeline 3):", str(e))
-        return None
 
 def fill_pie_chart_data(sensor_data):
     if not sensor_data or not isinstance(sensor_data, list):

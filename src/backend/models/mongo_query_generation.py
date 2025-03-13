@@ -35,6 +35,7 @@ def generate_mongo_query_from_prompt(prompt):
     system_instruction = (
         "You are an AI that generates MongoDB queries based on user requests. "
         "Your response **must be a JSON object** and follow one of these formats:\n\n"
+        "If the user asks to compare sensors, return a query with '$in' including multiple sensors."
         "### 1. Standard Sensor Queries (Line/Bar Charts):\n"
         f"{json.dumps(reference_query_sensors, indent=2)}\n\n"
         "### 2. Pie Chart (Distribution Queries) [**Use a List!**]:\n"
@@ -93,70 +94,3 @@ def generate_mongo_query_from_prompt(prompt):
     except Exception as e:
         print("LLM Error:", str(e))
         return None
-    
-def execute_pie_chart_query(query):
-    print("INFO: Executing pie chart aggregation.")
-
-    for stage in query:
-        if "$match" in stage and "timestamp" in stage["$match"]:
-            if "$gte" in stage["$match"]["timestamp"] and isinstance(stage["$match"]["timestamp"]["$gte"], str):
-                stage["$match"]["timestamp"]["$gte"] = datetime.strptime(
-                    stage["$match"]["timestamp"]["$gte"], "%Y-%m-%dT%H:%M:%SZ"
-                ).replace(tzinfo=timezone.utc)
-            if "$lt" in stage["$match"]["timestamp"] and isinstance(stage["$match"]["timestamp"]["$lt"], str):
-                stage["$match"]["timestamp"]["$lt"] = datetime.strptime(
-                    stage["$match"]["timestamp"]["$lt"], "%Y-%m-%dT%H:%M:%SZ"
-                ).replace(tzinfo=timezone.utc)
-
-    results = list(Telemetry.aggregate(query))  
-
-    if not results:
-        print("INFO: No results found for aggregation query.")
-        return {"error": "No distribution data available."}
-
-    print(f"INFO: Retrieved {len(results)} records from aggregation.")
-    return results
-
-
-def execute_mongo_query(query):
-    print(f"Executing MongoDB Query: {json.dumps(query, indent=2, default=str)}")
-
-    if not isinstance(query, dict):
-        print(f"ERROR: Query is not a dictionary! Type: {type(query)} -> Value: {query}")
-        return {"error": "Invalid query format"}
-
-    if "timestamp" in query:
-        if "$gte" in query["timestamp"] and isinstance(query["timestamp"]["$gte"], str):
-            query["timestamp"]["$gte"] = datetime.fromisoformat(query["timestamp"]["$gte"].replace("Z", "+00:00"))
-        if "$lt" in query["timestamp"] and isinstance(query["timestamp"]["$lt"], str):
-            query["timestamp"]["$lt"] = datetime.fromisoformat(query["timestamp"]["$lt"].replace("Z", "+00:00"))
-
-    if "metadata" in query and isinstance(query["metadata"], dict) and "name" in query["metadata"]:
-        sensor_filter = query["metadata"]["name"]
-        
-        if isinstance(sensor_filter, dict) and "$in" in sensor_filter:
-            sensor_names = sensor_filter["$in"]
-            print(f"INFO: Querying for multiple sensors: {sensor_names}")
-
-            query["metadata.name"] = {"$in": sensor_names}
-            del query["metadata"] 
-
-    sort_field = query.pop("sort", None) if "sort" in query else None
-
-    print(f"Executing Final MongoDB Query:\n{json.dumps(query, indent=2, default=str)}")
-
-    try:
-        if sort_field and isinstance(sort_field, dict):
-            sort_list = [(k, v) for k, v in sort_field.items()]
-            results = list(Telemetry.find(query).sort(sort_list))  
-        else:
-            results = list(Telemetry.find(query))
-
-    except Exception as e:
-        return {"error": "MongoDB query execution failed."}
-
-    if not results:
-        return {"error": "No matching data found."}
-
-    print(f"INFO: Retrieved {len(results)} records.")
-    return results

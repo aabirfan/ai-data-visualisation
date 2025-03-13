@@ -14,17 +14,10 @@ from fastapi.responses import JSONResponse
 ## FUNCTION IMPORTS
 
 from utils.query_processor import process_sensor_query
-from models.general_queries import fetch_embedded_queries
 
-from models.chart_generation import manual_chart_builder
-from models.chart_generation import generate_chart
-from models.embeddings import process_user_query
-
-from models.embeddings import embed_query
-from models.embeddings import vector_search
-from models.llm_pipeline import process_llm_pipeline
-
-from utils.data_calculations import calc_pipeline
+from models.chart_generation import manual_chart_builder #Pipeline 1
+from models.embeddings import process_user_query #Pipeline 2
+from models.llm_pipeline import process_llm_pipeline #Pipeline 3
 
 from models.chart_archiving import addArchivedChart
 from models.chart_archiving import get_chart_data
