@@ -9,6 +9,8 @@ import { FaArrowRight } from "react-icons/fa";
 import 'chartjs-adapter-moment';
 import "../../../styles/llmCharts.css";
 import "../../../styles/charts.css";
+import "../../../styles/modals.css";
+
 
 
 interface ChartJsCodeRendererProps {

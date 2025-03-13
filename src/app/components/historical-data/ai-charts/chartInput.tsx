@@ -61,9 +61,7 @@ export default function ChartInput({ onSubmit, loading,}: ChartInputProps) {
         <div className="modal-title">
             <h2>Archived Charts</h2>
         </div>
-        <div>
             <Archived_Graphs_List isOpen={isModalOpen} onClose={closeModal} />
-        </div>
       </Modal>
 
     </div>
