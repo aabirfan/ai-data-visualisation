@@ -3,6 +3,7 @@ import "../../../styles/modals.css";
 import { ChartJs } from './llmCharts';
 import Modal from '@/app/modals/modal';
 import { removeGraph } from '@/app/utils/archive_graph';
+import { SmallDialog } from '@/app/modals/dialog_modal';
 
 interface ModalProps {
   isOpen: boolean;
@@ -19,20 +20,31 @@ const Archived_Graphs_List: React.FC<ModalProps> = ({ isOpen, onClose }) => {
   const [chartOptions, setChartOptions] = useState<any | null>(null);
   const [chartType, setChartType] = useState<string>("line");
   const [chartTitle, setChartTitle] = useState<string>("");
+  const [chartDate, setChartDate] = useState<string>("");
   const chartRef = useRef<HTMLCanvasElement | null>(null);
 
 
-  const [isLModalOpen, setLModalOpen] = useState(false)
+  const [isLModalOpen, setLModalOpen] = useState(false);
+  const [isSmodalOpen, setSmodalOpen] = useState(false);
 
-  const openModal = (data: any, type:any, options:any, title:string) => {
+  const openModal = (data: any, type:any, options:any, title:string, date:string) => {
     setLModalOpen(true);
     setChartData(data);
     setChartOptions(options);
     setChartType(type);
     setChartTitle(title)
+    setChartDate(date)
   };
 
+  const openSmodal = (date:string) => {
+    setSmodalOpen(true)
+    setChartDate(date)
+  }
+
   const closeModal = () => setLModalOpen(false);
+
+  const closeSModal = () => setSmodalOpen(false);
+
 
   const downloadChart = () => {
     const canvas = document.querySelector(".graph-container canvas") as HTMLCanvasElement | null;
@@ -80,6 +92,8 @@ const Archived_Graphs_List: React.FC<ModalProps> = ({ isOpen, onClose }) => {
     } catch (error) {
       console.error("Error removing graph:", error);
     }
+
+    setSmodalOpen(false);
   };
 
   return (
@@ -87,39 +101,44 @@ const Archived_Graphs_List: React.FC<ModalProps> = ({ isOpen, onClose }) => {
 
       <Modal isOpen={isLModalOpen} onClose={closeModal}>
             <div className="modal-title">
-              <h2>{chartTitle}</h2>
+              <h2><strong>{chartTitle}</strong>, Saved: {new Date(chartDate).toLocaleString()}</h2>
             </div>
-            <div>
-              <ChartJs chartData={chartData} chartOptions={chartOptions} chartType={chartType}  />
-            </div>
-
+            <ChartJs chartData={chartData} chartOptions={chartOptions} chartType={chartType}  />
             <div className="save-btn">
               <button onClick={downloadChart}>Download Chart</button>
             </div>
       </Modal> 
+
+      <SmallDialog isOpen={isSmodalOpen} onClose={closeSModal}>
+      <div className="modal-title">
+              <h2><strong>Are you sure you want to delete?</strong></h2>
+            </div>
+            <div className="cfm-btn">
+            <button onClick={() => handleRemoveGraph(chartDate)}>Yes</button>
+            <button onClick={closeSModal}>No</button>
+            </div>
+      </SmallDialog>
 
         {loading ? (
           <p>Loading...</p>
         ) : error ? (
           <p>Error: {error}</p>
         ) : (
-          <div>
+          <div className='list-content'>
             {listData.length === 0 ? (
             <p>No archived graphs</p>
           ) : (
             <ul>
               {listData.map((chart, index) => (
                 <li key={index}>
-                  <div className='list-content'>
                       <h1>{(chart.title)}</h1>
                       <h3><strong>Saved on: </strong>{new Date(chart.date).toLocaleString()}</h3> 
                       <p>{(chart.description)}</p>
 
                       <div className='list-btns'>
-                        <button onClick={() => openModal(chart.chartData, chart.chartType, chart.chartOptions, chart.title)}> View </button>
-                        <button onClick={() => {handleRemoveGraph(chart.date)}}>Remove</button>
+                        <button onClick={() => openModal(chart.chartData, chart.chartType, chart.chartOptions, chart.title, chart.date)}> View </button>
+                        <button onClick={() => openSmodal(chart.date)}>Remove</button>
                       </div>   
-                  </div>
                   <hr className='dividers'/>
                 </li>
               ))}
