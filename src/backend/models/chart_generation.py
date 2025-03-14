@@ -13,6 +13,7 @@ my_api_key = os.getenv("GEMINI_API_KEY")
 
 def parse_timestamp(timestamp_str):
     return datetime.fromisoformat(timestamp_str)
+
 #MANUAL
 def manual_chart_builder(nums, sensor_name="Unknown Sensor"):
     labels = []
