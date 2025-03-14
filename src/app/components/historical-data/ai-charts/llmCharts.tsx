@@ -57,7 +57,7 @@ function LLMCharts({ loading, setLoading }: llmChartProps) {
   const [response, setResponse] = useState<any | null>(null);
   const [chartData, setChartData] = useState<any | null>(null);
   const [chartOptions, setChartOptions] = useState<any | null>(null);
-  const [chartType, setChartType] = useState<string>("line");
+  const [chartType, setChartType] = useState<string>("");
   const [isModalOpen, setModalOpen] = useState(false)
   const [chartTitle, setChartTitle] = useState<string>("");
   const [chartDescription, setChartDescription] = useState<string>("");

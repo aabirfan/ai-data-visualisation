@@ -39,8 +39,11 @@ export const handleChartRequest = async (
           setChartData(parsedCode.data);
           setChartOptions(parsedCode.options);
   
-          if (parsedCode.data?.type) {
-            setChartType(parsedCode.data.type);
+          if (parsedCode?.type) {
+            setChartType(parsedCode.type);
+            console.log("Chart Type:", parsedCode.type);
+          } else {
+            setChartType("line"); //Default
           }
         } catch (error) {
           console.error("Error parsing chart data:", error);
