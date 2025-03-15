@@ -4,13 +4,14 @@ import { ChartJs } from './llmCharts';
 import Modal from '@/app/modals/modal';
 import { removeGraph } from '@/app/utils/archive_graph';
 import { SmallDialog } from '@/app/modals/dialog_modal';
+import { IoMdClose } from "react-icons/io";
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const Archived_Graphs_List: React.FC<ModalProps> = ({ isOpen, onClose }) => {
+const Archived_Graphs_List: React.FC<ModalProps & { setIsGraphOpen: (isOpen: boolean) => void }> = ({ isOpen, onClose, setIsGraphOpen }) => {
   const [listData, setListData] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,6 +30,7 @@ const Archived_Graphs_List: React.FC<ModalProps> = ({ isOpen, onClose }) => {
 
   const openModal = (data: any, type:any, options:any, title:string, date:string) => {
     setLModalOpen(true);
+    setIsGraphOpen(true);
     setChartData(data);
     setChartOptions(options);
     setChartType(type);
@@ -41,7 +43,10 @@ const Archived_Graphs_List: React.FC<ModalProps> = ({ isOpen, onClose }) => {
     setChartDate(date)
   }
 
-  const closeModal = () => setLModalOpen(false);
+  const closeModal = () => {
+    setLModalOpen(false);
+    setIsGraphOpen(false); 
+  };
 
   const closeSModal = () => setSmodalOpen(false);
 
@@ -98,16 +103,21 @@ const Archived_Graphs_List: React.FC<ModalProps> = ({ isOpen, onClose }) => {
 
   return (
     <div className="list-container">
-
       <Modal isOpen={isLModalOpen} onClose={closeModal}>
-            <div className="modal-title">
-              <h2><strong>{chartTitle}</strong>, Saved: {new Date(chartDate).toLocaleString()}</h2>
-            </div>
-            <ChartJs chartData={chartData} chartOptions={chartOptions} chartType={chartType}  />
-            <div className="save-btn">
-              <button onClick={downloadChart}>Download Chart</button>
-            </div>
-      </Modal> 
+      <div className="modal-header">
+        <h2><strong>{chartTitle}</strong>, Saved: {new Date(chartDate).toLocaleString()}</h2>
+        <button className="close-btn" onClick={() => {
+        setLModalOpen(false); 
+        setIsGraphOpen(false); 
+    }}>
+        <IoMdClose />
+        </button>
+        </div>
+        <ChartJs chartData={chartData} chartOptions={chartOptions} chartType={chartType} />
+        <div className="save-btn">
+        <button onClick={downloadChart}>Download Chart</button>
+      </div>
+      </Modal>
 
       <SmallDialog isOpen={isSmodalOpen} onClose={closeSModal}>
       <div className="modal-title">
