@@ -3,6 +3,7 @@ import { FaArrowRight } from "react-icons/fa";
 import Modal from "../../../modals/modal";
 import Archived_Graphs_List from "./archived_graphs_list";
 import "../../../styles/modals.css";
+import { IoMdClose } from "react-icons/io";
 
 interface ChartInputProps {
   onSubmit: (query: string | number[]) => void;
@@ -12,6 +13,7 @@ interface ChartInputProps {
 export default function ChartInput({ onSubmit, loading,}: ChartInputProps) {
   const [query, setQuery] = useState("");
   const [isModalOpen, setModalOpen] = useState(false)
+  const [isGraphOpen, setIsGraphOpen] = useState(false);
 
   const openModal = () => setModalOpen(true);
   const closeModal = () => setModalOpen(false);
@@ -58,15 +60,17 @@ export default function ChartInput({ onSubmit, loading,}: ChartInputProps) {
       <div>
 
       <Modal isOpen={isModalOpen} onClose={closeModal}>
-        <div className="modal-title">
-            <h2>Archived Charts</h2>
-        </div>
-            <Archived_Graphs_List isOpen={isModalOpen} onClose={closeModal} />
+        <div className="modal-header">
+        <h2>Archived Charts</h2>
+        {!isGraphOpen && ( 
+        <button className="close-btn" onClick={closeModal}>
+        <IoMdClose />
+        </button>
+    )}
+      </div>
+        <Archived_Graphs_List isOpen={isModalOpen} onClose={closeModal} setIsGraphOpen={setIsGraphOpen} />
       </Modal>
-
     </div>
-
     </div>
-    
   );
 }
