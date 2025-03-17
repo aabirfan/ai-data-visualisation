@@ -13,7 +13,7 @@ interface ChartInputProps {
 
 export default function ChartInput({ onSubmit, loading }: ChartInputProps) {
   const [query, setQuery] = useState("");
-  const [isModalOpen, setModalOpen] = useState(false)
+  const [isModalOpen, setModalOpen] = useState(false);
   const [isGraphOpen, setIsGraphOpen] = useState(false);
   const [isPromptHistoryOpen, setPromptHistoryOpen] = useState(false);
 
@@ -25,9 +25,18 @@ export default function ChartInput({ onSubmit, loading }: ChartInputProps) {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!query.trim()) return;
-    
-    onSubmit(query);
-    setQuery("");
+
+    fetch("http://localhost:8000/api/save-prompt/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query }),
+    })
+      .then((res) => res.json())
+      .then(() => {
+        onSubmit(query);
+        setQuery("");
+      })
+      .catch((error) => console.error(error));
   };
 
   return (
@@ -63,13 +72,13 @@ export default function ChartInput({ onSubmit, loading }: ChartInputProps) {
 
       <Modal isOpen={isModalOpen} onClose={closeModal}>
         <div className="modal-header">
-        <h2>Archived Charts</h2>
-        {!isGraphOpen && ( 
-        <button className="close-btn" onClick={closeModal}>
-        <IoMdClose />
-        </button>
-    )}
-      </div>
+          <h2>Archived Charts</h2>
+          {!isGraphOpen && ( 
+            <button className="close-btn" onClick={closeModal}>
+              <IoMdClose />
+            </button>
+          )}
+        </div>
         <Archived_Graphs_List isOpen={isModalOpen} onClose={closeModal} setIsGraphOpen={setIsGraphOpen} />
       </Modal>
     </div>

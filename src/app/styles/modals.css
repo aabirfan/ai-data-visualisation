@@ -39,7 +39,6 @@
     cursor: pointer;
   }
   
-
   .dialog-overlay {
     position: fixed;
     background-color: rgba(0, 0, 0, 0.301);
@@ -223,11 +222,11 @@
 
 .prompt-list-container {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center; 
-  min-height: 150px; 
-  padding-top: 55px;
+  justify-content: center;
+  max-width: 100%;
+  max-height: 100%;
+  overflow-y: scroll; 
+  padding: 20px;
 }
 
 .no-history-message {
@@ -256,4 +255,21 @@
 .execute-btn:hover {
   background-color: rgb(4, 4, 212);
   cursor: pointer;
+}
+
+.clear-history-btn {
+  position: absolute; 
+  bottom: 10px;
+  right: 10px;
+  display: flex;
+  justify-content: flex-end; 
+  width: 100%;
+  padding: 10px;
+}
+
+.loading-message {
+  font-size: 16px;
+  font-weight: 500;
+  text-align: center;
+  padding: 10px;
 }
