@@ -61,15 +61,33 @@ function LLMCharts({ loading, setLoading }: llmChartProps) {
   const [isModalOpen, setModalOpen] = useState(false)
   const [chartTitle, setChartTitle] = useState<string>("");
   const [chartDescription, setChartDescription] = useState<string>("");
+  
 
 
   const openModal = () => setModalOpen(true);
   const closeModal = () => setModalOpen(false);
 
+  const savePromptHistory = (query: string) => {
+    if (typeof query !== "string") {
+      return; 
+    }
+    let history = JSON.parse(localStorage.getItem("promptHistory") || "[]");
+    history.unshift(query); 
+    localStorage.setItem("promptHistory", JSON.stringify(history));
+  };
+  
+  
   return (
     <div className="llm-container">
       
-      <ChartInput onSubmit={(query) => handleChartRequest(query, setLoading, setResponse, setChartData, setChartOptions, setChartType)} loading={loading} />
+      <ChartInput
+  onSubmit={(query) => { 
+    savePromptHistory(query);
+    handleChartRequest(query, setLoading, setResponse, setChartData, setChartOptions, setChartType);
+  }}
+  loading={loading}
+/>
+
 
       <Dialog isOpen={isModalOpen} onClose={closeModal}>
             <div className="modal-title">
