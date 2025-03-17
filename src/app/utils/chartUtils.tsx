@@ -8,6 +8,13 @@ export const handleChartRequest = async (
   ) => {
     setLoading(true);
     setResponse(null);
+
+    const savePromptHistory = (query: string) => {
+      let history = JSON.parse(localStorage.getItem("promptHistory") || "[]");
+      history.unshift(query);
+      localStorage.setItem("promptHistory", JSON.stringify(history));
+    };
+    
   
     try {
       const res = await fetch("http://localhost:8000/query", {

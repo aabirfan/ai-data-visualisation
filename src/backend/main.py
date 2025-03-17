@@ -23,6 +23,8 @@ from models.chart_archiving import addArchivedChart
 from models.chart_archiving import get_chart_data
 from models.chart_archiving import remove_saved_data
 
+from models.prompt_history import add_prompt_history, get_prompt_history, PromptRequest, clear_prompt_history
+
 load_dotenv("../../.env.local")
 
 app = FastAPI()
@@ -117,4 +119,22 @@ async def remove_saved_chart(data: removeData):
     post_id = data.timestamp
     remove_saved_data(post_id)
     return JSONResponse(content={"data": post_id})   
+
+@app.post("/api/save-prompt/")
+async def save_prompt(data: PromptRequest):
+    add_prompt_history(data.query)
+    return JSONResponse(content={"message": "Prompt saved"})
+
+@app.get("/api/get-prompt-history/")
+async def fetch_prompt_history():
+    history = get_prompt_history()
+    return JSONResponse(content={"data": history}, media_type="application/json")  
+
+@app.delete("/api/clear-prompt-history/")
+async def delete_prompt_history():
+    return clear_prompt_history()
+
+
+
+
 

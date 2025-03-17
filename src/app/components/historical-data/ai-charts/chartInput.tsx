@@ -1,28 +1,42 @@
-import {useState } from "react";
+import { useState } from "react";
 import { FaArrowRight } from "react-icons/fa"; 
 import Modal from "../../../modals/modal";
 import Archived_Graphs_List from "./archived_graphs_list";
+import PromptHistory from "./promptHistory"; 
 import "../../../styles/modals.css";
 import { IoMdClose } from "react-icons/io";
 
 interface ChartInputProps {
-  onSubmit: (query: string | number[]) => void;
+  onSubmit: (query: string) => void; 
   loading: boolean;
 }
 
-export default function ChartInput({ onSubmit, loading,}: ChartInputProps) {
+export default function ChartInput({ onSubmit, loading }: ChartInputProps) {
   const [query, setQuery] = useState("");
-  const [isModalOpen, setModalOpen] = useState(false)
+  const [isModalOpen, setModalOpen] = useState(false);
   const [isGraphOpen, setIsGraphOpen] = useState(false);
+  const [isPromptHistoryOpen, setPromptHistoryOpen] = useState(false);
 
   const openModal = () => setModalOpen(true);
   const closeModal = () => setModalOpen(false);
+  const openPromptHistory = () => setPromptHistoryOpen(true);
+  const closePromptHistory = () => setPromptHistoryOpen(false);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!query.trim()) return;
-    onSubmit(query);
-    setQuery("");
+
+    fetch("http://localhost:8000/api/save-prompt/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query }),
+    })
+      .then((res) => res.json())
+      .then(() => {
+        onSubmit(query);
+        setQuery("");
+      })
+      .catch((error) => console.error(error));
   };
 
   return (
@@ -30,11 +44,11 @@ export default function ChartInput({ onSubmit, loading,}: ChartInputProps) {
       <div className="input-title">
         <h2 className="chart-title">What can I help you with?</h2>
         <img 
-              src={loading ? "illi_loading.png" : "illi.png"} 
-              alt="Status Image" 
-              className={loading ? "flash" : ""} 
-            />    
-         </div>
+          src={loading ? "illi_loading.png" : "illi.png"} 
+          alt="Status Image" 
+          className={loading ? "flash" : ""} 
+        />    
+      </div>
 
       <form onSubmit={handleSubmit} className="chart-input-wrapper">
         <input
@@ -45,32 +59,28 @@ export default function ChartInput({ onSubmit, loading,}: ChartInputProps) {
           className="chart-input"
         />
         <button type="submit" className="chart-send-button">
-            {loading ? (
-              <div className="spinner"></div>
-            ) : (
-              <FaArrowRight className="chart-send-icon" />
-            )}
-       </button>
+          {loading ? <div className="spinner"></div> : <FaArrowRight className="chart-send-icon" />}
+        </button>
       </form>
+
       <div className="input-btns">
-        <button >Prompt history</button>
+        <button onClick={openPromptHistory}>Prompt history</button>
         <button onClick={openModal}>Archived charts</button>
       </div>
 
-      <div>
+      <PromptHistory isOpen={isPromptHistoryOpen} onClose={closePromptHistory} onSubmit={onSubmit} />
 
       <Modal isOpen={isModalOpen} onClose={closeModal}>
         <div className="modal-header">
-        <h2>Archived Charts</h2>
-        {!isGraphOpen && ( 
-        <button className="close-btn" onClick={closeModal}>
-        <IoMdClose />
-        </button>
-    )}
-      </div>
+          <h2>Archived Charts</h2>
+          {!isGraphOpen && ( 
+            <button className="close-btn" onClick={closeModal}>
+              <IoMdClose />
+            </button>
+          )}
+        </div>
         <Archived_Graphs_List isOpen={isModalOpen} onClose={closeModal} setIsGraphOpen={setIsGraphOpen} />
       </Modal>
-    </div>
     </div>
   );
 }
