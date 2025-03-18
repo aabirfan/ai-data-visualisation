@@ -4,7 +4,6 @@ from models.general_queries import fetch_sensor_values
 import json
 from collections import defaultdict
 from datetime import datetime
-import google.generativeai as genai
 
 
 def process_sensor_query(query_text: str):

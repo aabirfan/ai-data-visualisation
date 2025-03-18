@@ -21,8 +21,6 @@ def extract_date(query):
                     month_number = datetime.strptime(month_name.capitalize(), "%B").month
                 return f"{year}-{month_number:02d}-{int(day):02d}"
 
-    return None  
-
 #Extracts date range
 def extract_date_range(query):
     date_matches = re.findall(r"\b\d{4}-\d{2}-\d{2}\b|\b\d{2}/\d{2}/\d{4}\b|\b\d{1,2} [A-Za-z]+ \d{4}\b", query)

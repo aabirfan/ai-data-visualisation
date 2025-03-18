@@ -1,46 +1,54 @@
 from models.database import collection as Telemetry
+import re
 
-SENSOR_KEYWORDS = {
-    "pH in": ["ph in"],
-    "pH out": ["ph out"],
-    "pH reg": ["ph reg", "ph regulation"],
-    "Flow in": ["flow in"],
-    "Flow out": ["flow out"],
-    "Flow in total counter": ["flow in total", "flow counter in"],
-    "Flow out total counter": ["flow out total", "flow counter out"],
-    "CO2 usage": ["co2 usage"],
-    "CO2 rack remaining": ["co2 rack"],
-    "Flocculant tank": ["flocculant tank"],
-    "Flocculant usage": ["flocculant usage"],
-    "Turbidity in": ["turbidity in"],
-    "Turbidity out": ["turbidity out"]
-}
+SENSOR_NAMES_CACHE = None
+
+def generate_keywords(sensor_name):
+    variations = [
+        sensor_name.lower(),
+        sensor_name.replace(" ", ""),
+        sensor_name.replace(" ", "").lower()
+    ]
+    
+    return variations
+
+
+def get_sensor_types():
+    global SENSOR_NAMES_CACHE
+    
+    if SENSOR_NAMES_CACHE is None:
+        print("INFO: Loading sensor names from database (lazy loading)...")
+        SENSOR_NAMES_CACHE = list(Telemetry.distinct("metadata.name"))
+        print(f"INFO: Loaded {len(SENSOR_NAMES_CACHE)} sensor names.")
+        
+        if SENSOR_NAMES_CACHE:
+            print(f"DEBUG: First few sensors: {SENSOR_NAMES_CACHE[:5]}")
+        else:
+            print("WARNING: No sensor names found in database")
+    
+    return SENSOR_NAMES_CACHE
 
 def extract_sensor(query_text):
     query_text = query_text.lower().strip()
 
-    for sensor, keywords in SENSOR_KEYWORDS.items():
+    sensor_types = get_sensor_types()
+    
+    sensor_keywords_map = {}
+    
+    for sensor in sensor_types:
+        sensor_keywords_map[sensor] = generate_keywords(sensor)
+    
+    for sensor, keywords in sensor_keywords_map.items():
         if any(keyword in query_text for keyword in keywords):
             if "distribution" in query_text or "pie chart" in query_text:
                 print(f"INFO: Detected request for pie chart for sensor: {sensor}")
-                return sensor  
-            return sensor  
-
+            return sensor
+    
     if "distribution" in query_text or "sensor types" in query_text or "pie chart" in query_text:
         print("INFO: Detected request for a pie chart of all sensors. Fetching sensor types from DB.")
-        sensor_types = Telemetry.distinct("metadata.name")
         if not sensor_types:
             print("ERROR: No sensor types found in the database.")
             return {"error": "No sensor types found."}
         return sensor_types  
 
-
-    if "ph" in query_text and not any(keyword in query_text for keyword in ["ph in", "ph out", "ph reg"]):
-        return {"error": "Please specify 'pH in', 'pH out', or 'pH reg'."}  
-
-    for sensor, keywords in SENSOR_KEYWORDS.items():
-        if any(keyword in query_text for keyword in keywords):
-            return sensor
-
     return {"error": "Unknown sensor type."}
-

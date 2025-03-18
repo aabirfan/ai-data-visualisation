@@ -7,9 +7,9 @@ from .database import collection as Telemetry
 from utils.chart_utils import generate_chart_from_query_results
 from utils.date_parser import extract_all_dates
 from utils.mongo_executor import execute_queries
+from utils.sensor_parser import extract_sensor
 
-model = SentenceTransformer("nomic-ai/nomic-embed-text-v1", trust_remote_code=True)
-nlp_model = SentenceTransformer("all-MiniLM-L6-v2")
+model = SentenceTransformer("all-MiniLM-L6-v2", trust_remote_code=True)
 
 ######### EMBEDDINGS
 
@@ -23,7 +23,6 @@ def create_docs_with_bson_vector_embeddings(bson_float32, data):
     docs = []
     for i, (bson_f32_emb, query) in enumerate(zip(bson_float32, data)): 
         doc = {
-            "_id": i,  
             "natural_query": query[0],  
             "mongo_query": query[1],    
             "BSON-Float32-Embedding": bson_f32_emb,
@@ -35,14 +34,17 @@ def create_docs_with_bson_vector_embeddings(bson_float32, data):
 
 def embed_query():
     queries = [
-        [
-          "Give me OBJECT values for dates X and Y",
-          {
-              "timestamp": "X",
-              "metadata.name": "OBJECT"
-          }
-        ]
+    [
+        "Give me OBJECT values for dates X and Y", 
+        {
+            "timestamp": {
+                "$gte": "X",
+                "$lt": "Y"
+            },
+            "metadata.name": "OBJECT"
+        }  
     ]
+]
 
     natural_queries = [query[0] for query in queries]
     float32_embeddings = get_embedding(natural_queries, "float32")
@@ -90,37 +92,26 @@ def vector_search(user_query):
     return None, None
 
 ######### EXTRACT VARIABLES 
-#Fetch exisiting sensor names to perform a match
-def get_existing_sensor_names():
-    return Telemetry.distinct("metadata.name")
 
 def extract_variables(user_query):
     extracted_dates, mongo_dates, error_message = extract_all_dates(user_query)
-
+    
     if error_message:
         print(error_message)
         return None, None, error_message
 
-    sensor_names = get_existing_sensor_names()
-    if not sensor_names:
-        print("No sensor names found in database.")
-        return None, None, "No sensor names found in database."
-
-    query_embedding = nlp_model.encode(user_query)
-    sensor_embeddings = nlp_model.encode(sensor_names)
-
-    similarity_scores = util.pytorch_cos_sim(query_embedding, sensor_embeddings)[0].tolist()
+    matched_sensors = extract_sensor(user_query)
     
-    threshold = 0.7  
-    matched_sensors = [
-        sensor_names[i] for i, score in enumerate(similarity_scores) if score >= threshold
-    ]
+    if isinstance(matched_sensors, dict) and "error" in matched_sensors:
+        print(matched_sensors["error"])
+        return None, None, matched_sensors["error"]
 
-    if not matched_sensors:
-        print("No strong sensor match found, defaulting to best match.")
-        matched_sensors = [sensor_names[similarity_scores.index(max(similarity_scores))]]
+    if isinstance(matched_sensors, list):
+        print(f"Matched Sensors: {matched_sensors}")
+    else:
+        matched_sensors = [matched_sensors]
+        print(f"Matched Sensor: {matched_sensors[0]}")
 
-    print(f"Matched Sensors: {matched_sensors}")
     return matched_sensors, mongo_dates, None
 
 
