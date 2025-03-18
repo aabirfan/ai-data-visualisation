@@ -8,9 +8,6 @@ from fastapi import HTTPException
 import json
 from fastapi.responses import JSONResponse
 
-
-
-
 ## FUNCTION IMPORTS
 
 from utils.query_processor import process_sensor_query
@@ -51,38 +48,24 @@ class ChartData(BaseModel):
 class removeData(BaseModel):
     timestamp: int
 
+
 @app.get("/")
-def read_root():
+def read_root():    
     return {"Hello": "World test"}
 
 @app.post("/query")
 async def process_query(query_request: QueryRequest):
 
-    ##TIMESTAMP + VALUE 
-    response, sensor_name = process_sensor_query(query_request.query) 
-
-    ## VECTOR SEARCH (Embeds query and matches it with saved queries
-    ##prompt = vector_search(query_request.query)
-    ## print("prompt:", prompt)
-
-    ##response = fetch_embedded_queries(prompt)
-
-    ##print("respones", response)
-
-
-    ## calculations = calc_pipeline(response)
-        
-    ## UNCOMMENT & SET AS RETURN TO ENABLE LLM PIPELINE 
-    ##llm_response = await llmPrompt(calculations)
-
-    print(f"DEBUG: Sensor Name received in process_query: {sensor_name}")
-
-    if isinstance(response, dict) and "error" in response:
-        return {"error": response["error"]}
-
     #Temporary, the prompt has to start with manual to receive a manual chart
     if query_request.query.lower().startswith("manual"):
-        chart = manual_chart_builder(response, sensor_name=sensor_name)
+        response, sensor_name  = process_sensor_query(query_request.query)
+
+        print(f"DEBUG: Sensor Name received in process_query: {sensor_name}")
+
+        if isinstance(response, dict) and "error" in response:
+            return {"error": response["error"]}
+        
+        chart = manual_chart_builder(response, sensor_name)
         return {"message": chart}
     
     #Temporary, the prompt has to start with rag to receive a rag chart

@@ -4,31 +4,11 @@ from pymongo import MongoClient, ASCENDING
 from .database import collection as Telemetry
 import json
 
-client = MongoClient("mongodb+srv://aaban:1LNXEejICzbHQTet@llmcluster.x91zk.mongodb.net/PlantDatabase?retryWrites=true&w=majorityng")
-db = client["PlantDatabase"]
-collection = db["Telemetry"]
-
-SENSOR_UNITS = {
-    "CO2 rack remaining": "KG_CO2",
-    "CO2 usage": "KG_CO2",
-    "Flocculant tank": "LITERS",
-    "Flocculant usage": "ML",
-    "Flow in": "LITERS_PER_HOUR",
-    "Flow in total counter": "LITERS",
-    "Flow out": "LITERS_PER_HOUR",
-    "Flow out total counter": "LITERS",
-    "Turbidity in": "NTU",
-    "Turbidity out": "NTU",
-    "pH in": "",
-    "pH out": "",
-    "pH reg": ""
-}
-
-
 @lru_cache(maxsize=50)  
 def fetch_sensor_values(start_date, end_date, sensor_name, limit=None, query_type="values"):
     try:
         query = {"metadata.name": {"$regex": f"^{sensor_name}$", "$options": "i"}} 
+        
         if start_date:
             date_range = {"$gte": datetime.strptime(start_date, "%Y-%m-%d")}
             if end_date and start_date != end_date:
@@ -40,7 +20,7 @@ def fetch_sensor_values(start_date, end_date, sensor_name, limit=None, query_typ
 
         print(f"\nDEBUG: Running MongoDB query:\n{query}")
 
-        cursor = collection.find(query, {"timestamp": 1, "metadata.name": 1, "value": 1, "_id": 0})
+        cursor = Telemetry.find(query, {"timestamp": 1, "metadata.name": 1, "value": 1, "_id": 0})
         results = list(cursor)
 
         print("\nDEBUG: MongoDB Results:\n", results)
@@ -48,7 +28,6 @@ def fetch_sensor_values(start_date, end_date, sensor_name, limit=None, query_typ
         if not results:
             return {"error": f"Sorry, no {sensor_name} data was found for {start_date}."}
 
-        unit = SENSOR_UNITS.get(sensor_name, "")
         values = [(doc["timestamp"], doc["value"]) for doc in results if isinstance(doc.get("value"), (int, float))
                   and "timestamp" in doc]  
 
