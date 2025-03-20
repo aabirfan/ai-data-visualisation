@@ -8,20 +8,25 @@ from utils.chart_utils import generate_chart_from_query_results
 from utils.date_parser import extract_all_dates
 from utils.mongo_executor import execute_queries
 from utils.sensor_parser import extract_sensor
+import numpy as np
 
 model = SentenceTransformer("all-MiniLM-L6-v2", trust_remote_code=True)
 
 ######### EMBEDDINGS
 
 def get_embedding(data, precision="float32"):
-    return model.encode(data, precision=precision)
+    embeddings = model.encode(data)
+    if precision == "float32":
+        embeddings = embeddings.astype(np.float32)
+    return embeddings
 
 def generate_bson_vector(vector):
     return Binary.from_vector(vector, BinaryVectorDtype.FLOAT32)
 
 def create_docs_with_bson_vector_embeddings(bson_float32, data):
     docs = []
-    for i, (bson_f32_emb, query) in enumerate(zip(bson_float32, data)): 
+
+    for (bson_f32_emb, query) in enumerate(zip(bson_float32, data)): 
         doc = {
             "natural_query": query[0],  
             "mongo_query": query[1],    
@@ -29,31 +34,6 @@ def create_docs_with_bson_vector_embeddings(bson_float32, data):
         }
         docs.append(doc)
     return docs
-
-######### STORING TEMPLATE QUERY
-
-def embed_query():
-    queries = [
-    [
-        "Give me OBJECT values for dates X and Y", 
-        {
-            "timestamp": {
-                "$gte": "X",
-                "$lt": "Y"
-            },
-            "metadata.name": "OBJECT"
-        }  
-    ]
-]
-
-    natural_queries = [query[0] for query in queries]
-    float32_embeddings = get_embedding(natural_queries, "float32")
-
-    bson_float32_embeddings = [generate_bson_vector(f32_emb) for f32_emb in float32_embeddings]
-
-    docs = create_docs_with_bson_vector_embeddings(bson_float32_embeddings, queries)
-    vector_collection.insert_many(docs)  
-    print("Query stored.")
 
 ######### SEARCHING QUERY TEMPLATE
 
@@ -94,7 +74,7 @@ def vector_search(user_query):
 ######### EXTRACT VARIABLES 
 
 def extract_variables(user_query):
-    extracted_dates, mongo_dates, error_message = extract_all_dates(user_query)
+    extracted_dates, mongo_dates,  hour_start, hour_end, error_message = extract_all_dates(user_query)
     
     if error_message:
         print(error_message)
@@ -112,13 +92,17 @@ def extract_variables(user_query):
         matched_sensors = [matched_sensors]
         print(f"Matched Sensor: {matched_sensors[0]}")
 
-    return matched_sensors, mongo_dates, None
+    print(f"\n Dates: {mongo_dates}")
+    print(f"\n TOD: {hour_start, hour_end} \n")
+
+
+    return matched_sensors, mongo_dates, hour_start, hour_end, None
 
 
 
 ######### FILL MONGO QUERY TEMPLATE
 
-def fill_query(template_query, object_names, dates):
+def fill_query(template_query, object_names, dates, time_hour_begin, time_hour_end):
     if not template_query:
         print("No template query found")
         return None
@@ -126,17 +110,27 @@ def fill_query(template_query, object_names, dates):
     if not isinstance(template_query, dict):
         print(f"Template query is not a dictionary! It is: {type(template_query)}")
         return None
-
+    
     filled_queries = []
 
     for date in dates:
         query_filled = template_query.copy()
 
         try:
-            query_filled["timestamp"] = {
+            if time_hour_begin is None and time_hour_end is None:
+                query_filled["timestamp"] = {
                 "$gte": date.replace(hour=0, minute=0, second=0, tzinfo=timezone.utc),
                 "$lt": date.replace(hour=23, minute=59, second=59, tzinfo=timezone.utc)
-            }
+                }
+                
+            else:
+                hour_begin = int(time_hour_begin)
+                hour_end = int(time_hour_end)
+
+                query_filled["timestamp"] = {
+                "$gte": date.replace(hour=hour_begin, minute=0, second=0, tzinfo=timezone.utc),
+                "$lt": date.replace(hour=hour_end, minute=59, second=59, tzinfo=timezone.utc)
+                }
 
             if isinstance(object_names, list) and len(object_names) > 1:
                 query_filled["metadata.name"] = {"$in": object_names}
@@ -164,12 +158,12 @@ def process_user_query(user_query):
     if not query_template:
         return {"error": "No matching query template found."}
 
-    object_name, dates, error = extract_variables(user_query)
+    object_name, dates, hour_start, hour_end, error = extract_variables(user_query)
 
     if error or object_name is None:
         object_name = "Unknown"
 
-    final_queries = fill_query(query_template, object_name, dates)
+    final_queries = fill_query(query_template, object_name, dates, hour_start, hour_end)
 
     if not final_queries:
         return {"error": "Query filling failed."}
@@ -177,6 +171,3 @@ def process_user_query(user_query):
     raw_results = execute_queries(final_queries)
 
     return generate_chart_from_query_results(user_query, raw_results)
-
-if __name__ == "__main__":
-    embed_query()

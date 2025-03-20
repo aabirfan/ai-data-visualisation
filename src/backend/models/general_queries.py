@@ -23,8 +23,6 @@ def fetch_sensor_values(start_date, end_date, sensor_name, limit=None, query_typ
         cursor = Telemetry.find(query, {"timestamp": 1, "metadata.name": 1, "value": 1, "_id": 0})
         results = list(cursor)
 
-        print("\nDEBUG: MongoDB Results:\n", results)
-
         if not results:
             return {"error": f"Sorry, no {sensor_name} data was found for {start_date}."}
 
