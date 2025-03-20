@@ -46,31 +46,88 @@ def extract_date_range(query):
 
     return start_date, end_date, None  
 
-#Extracts valid dates
+# Extracts valid dates along with hour start and hour end
+
 def extract_all_dates(query):
-    date_matches = re.findall(r"\b\d{4}-\d{2}-\d{2}\b|\b\d{2}/\d{2}/\d{4}\b|\b\d{1,2} [A-Za-z]+ \d{4}\b", query)
+    date_matches = re.findall(r"\b\d{4}-\d{2}-\d{2}(?: \d{2}:\d{2})?\b|\b\d{2}/\d{2}/\d{4}\b|\b\d{1,2} [A-Za-z]+ \d{4}\b", query)
+    
     extracted_dates = [extract_date(date) for date in date_matches if extract_date(date)]
 
     if not extracted_dates:
-        return None, None, "Could not extract valid dates."
+        return None, None, None, None, "Could not extract valid dates."
 
     today = datetime.today().strftime("%Y-%m-%d")
     five_years_ago = (datetime.today() - timedelta(days=5 * 365)).strftime("%Y-%m-%d")
 
     valid_dates = []
+    hour_start = None
+    hour_end = None
+
     for date in extracted_dates:
         if date > today:
-            return None, None, "Cannot query for future dates."
+            return None, None, None, None, "Cannot query for future dates."
         if date < five_years_ago:
-            return None, None, "Date is too old"
+            return None, None, None, None, "Date is too old"
         valid_dates.append(date)
 
+    time_range_match = re.search(r"(\d{1,2}):(\d{2})\s*(?:to|-|–|until)\s*(\d{1,2}):(\d{2})", query)
+    if time_range_match:
+        start_hour = int(time_range_match.group(1))
+        end_hour = int(time_range_match.group(3))
+        hour_start = start_hour
+        hour_end = end_hour
+    else:
+        # Look for a single time in the format HH:MM (i.e 5:00)
+        time_match = re.search(r"(\d{1,2}):(\d{2})", query)
+        if time_match:
+            start_hour = int(time_match.group(1))
+            hour_start = start_hour
+            hour_end = (start_hour + 1) % 24  # Default the end hour to 1 hour after the start
+        elif re.search(r"at\s+\d{1,2}\s*(?:am|pm)", query, re.IGNORECASE):
+            # Look for times in "at 5pm" format
+            am_pm_match = re.search(r"at\s+(\d{1,2})\s*(am|pm)", query, re.IGNORECASE)
+            if am_pm_match:
+                hour = int(am_pm_match.group(1))
+                am_pm = am_pm_match.group(2).lower()
+                if am_pm == "pm" and hour < 12:
+                    hour += 12  # Convert PM hour to 24-hour format
+                if am_pm == "am" and hour == 12:
+                    hour = 0  # Convert 12 AM to 0
+                hour_start = hour
+                hour_end = (hour + 1) % 24  # Default the end hour to 1 hour after the start
+
+        else:
+            time_until_match = re.search(r"(\d{1,2})\s*(am|pm)?\s*(?:until)\s*(\d{1,2})\s*(am|pm)?", query, re.IGNORECASE)
+            if time_until_match:
+                start_hour = int(time_until_match.group(1))
+                end_hour = int(time_until_match.group(3))
+                start_am_pm = time_until_match.group(2)
+                end_am_pm = time_until_match.group(4)
+
+                if start_am_pm:
+                    if start_am_pm.lower() == "pm" and start_hour < 12:
+                        start_hour += 12
+                    if start_am_pm.lower() == "am" and start_hour == 12:
+                        start_hour = 0
+
+                if end_am_pm:
+                    if end_am_pm.lower() == "pm" and end_hour < 12:
+                        end_hour += 12
+                    if end_am_pm.lower() == "am" and end_hour == 12:
+                        end_hour = 0
+                else:
+                    if start_am_pm and start_hour < 12 and end_hour < 12:
+                        end_hour += 12
+
+                hour_start = start_hour
+                hour_end = end_hour
+
     mongo_dates = [
-        datetime.strptime(date, "%Y-%m-%d").replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=timezone.utc)
+        datetime.strptime(date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
         for date in valid_dates
     ]
 
-    return valid_dates, mongo_dates, None
+    return valid_dates, mongo_dates, hour_start, hour_end, None
 
 #Generates a Mongo date filter query.
 def get_date_range(start_date, end_date=None):
