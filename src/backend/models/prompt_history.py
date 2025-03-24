@@ -5,13 +5,11 @@ from pydantic import BaseModel
 from datetime import datetime
 import pytz
 
-class PromptRequest(BaseModel):
-    query: str 
 
-def add_prompt_history(query: str):
+def add_prompt_history(query: str, asset_id: str):
     try:
         timestamp = datetime.utcnow()
-        entry = {"query": query, "timestamp": timestamp}
+        entry = {"query": query, "timestamp": timestamp, "asset_id": asset_id }
         
         result = collection.insert_one(entry)  
         
@@ -25,10 +23,10 @@ def add_prompt_history(query: str):
     except PyMongoError as e:
         raise HTTPException(status_code=500)
 
-def get_prompt_history():
+def get_prompt_history(asset_id):
     try:
         history = list(
-            collection.find({}, {"_id": 0, "query": 1, "timestamp": 1})
+            collection.find({"asset_id": asset_id}, {"_id": 0, "query": 1, "timestamp": 1})
             .sort("timestamp", 1)
             .limit(10)
         )

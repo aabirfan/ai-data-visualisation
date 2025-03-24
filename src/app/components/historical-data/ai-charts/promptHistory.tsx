@@ -6,21 +6,31 @@ interface PromptHistoryProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (query: string) => void;
+  SelectedAsset: string
 }
 
-export default function PromptHistory({ isOpen, onClose, onSubmit }: PromptHistoryProps) {
+export default function PromptHistory({ isOpen, onClose, onSubmit, selectedAsset}: PromptHistoryProps) {
   const [promptHistory, setPromptHistory] = useState<{ query: string; timestamp: string }[]>([]);
   const [loading, setLoading] = useState(false); 
 
-  const fetchPromptHistory = () => {
-    setLoading(true); 
-    fetch("http://localhost:8000/api/get-prompt-history/")
-      .then((res) => res.json())
-      .then((data) => {
-        setPromptHistory(data.data || []);
-      })
-      .catch((error) => console.error(error))
-      .finally(() => setLoading(false)); 
+  const fetchPromptHistory = async (asset_id: string) => {
+    try {
+      console.log(asset_id, "Failed" );
+      const response = await fetch("http://localhost:8000/api/get-prompt-history",{
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ asset_id }),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to fetch data");
+      }
+      const data = await response.json();
+      setPromptHistory(data.data);
+    } catch (error: any) {
+      console.error("Fetch error:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleClearHistory = () => {
@@ -34,7 +44,7 @@ export default function PromptHistory({ isOpen, onClose, onSubmit }: PromptHisto
 
   useEffect(() => {
     if (isOpen) {
-      fetchPromptHistory();
+      fetchPromptHistory(selectedAsset);
     }
   }, [isOpen]);
 

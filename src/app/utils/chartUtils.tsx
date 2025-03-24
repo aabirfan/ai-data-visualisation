@@ -1,5 +1,8 @@
+import { error } from "console";
+
 export const handleChartRequest = async (
     query: string | number[],
+    selectedAsset,
     setLoading: React.Dispatch<React.SetStateAction<boolean>>,
     setResponse: React.Dispatch<React.SetStateAction<any>>,
     setChartData: React.Dispatch<React.SetStateAction<any>>,
@@ -9,18 +12,16 @@ export const handleChartRequest = async (
     setLoading(true);
     setResponse(null);
 
-    const savePromptHistory = (query: string) => {
-      let history = JSON.parse(localStorage.getItem("promptHistory") || "[]");
-      history.unshift(query);
-      localStorage.setItem("promptHistory", JSON.stringify(history));
+    const requestData = {
+      query,
+      asset_id: String(selectedAsset),
     };
-    
   
     try {
       const res = await fetch("http://localhost:8000/query", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query }),
+        body: JSON.stringify(requestData),
       });
   
       let data;

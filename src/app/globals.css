@@ -94,6 +94,7 @@ main {
   display: flex;
   align-items: center;
   flex-direction: column;
+  position: relative;
   height: 100vh;
 }
 
@@ -106,5 +107,62 @@ main {
 
 .logo:hover {
   filter:brightness(1.6);
+  cursor: pointer;
+}
+
+header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  text-align: start;
+}
+
+.dropbtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  padding: 9px;
+  font-size: 15px;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  margin-right: 10px;
+  min-width: 90px;
+  text-align: center;
+  gap: 2px;
+
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+  z-index: 2000;
+}
+
+.dropdown-content {
+  display: block;
+  border-radius: 12px;
+  position: absolute;
+  background-color: var(--content);
+  min-width: 100%;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+  right: 0;
+  margin-top: 3px;
+}
+
+.dropdown-content a {
+  color: rgb(255, 255, 255);
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  border-radius: 12px;
+
+}
+
+.dropdown-content a:hover {
+  background-color: #5151515d;
   cursor: pointer;
 }

@@ -6,9 +6,9 @@ from collections import defaultdict
 from datetime import datetime
 
 
-def process_sensor_query(query_text: str):
+def process_sensor_query(query_text: str, asset_id:str):
     start_date, end_date, error_message = extract_date_range(query_text)
-
+    asset = asset_id
     if error_message:
         return {"error": "Invalid date format."}, "pH"
 
@@ -23,7 +23,7 @@ def process_sensor_query(query_text: str):
         "values"
     )
 
-    return fetch_sensor_values(start_date, end_date, sensor_name, limit=50, query_type=query_type), sensor_name
+    return fetch_sensor_values(start_date, end_date, sensor_name, asset, limit=50, query_type=query_type), sensor_name
 
 
 

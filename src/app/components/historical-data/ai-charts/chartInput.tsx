@@ -9,9 +9,10 @@ import { IoMdClose } from "react-icons/io";
 interface ChartInputProps {
   onSubmit: (query: string) => void; 
   loading: boolean;
+  selectedAsset: string;
 }
 
-export default function ChartInput({ onSubmit, loading }: ChartInputProps) {
+export default function ChartInput({ onSubmit, loading, selectedAsset }: ChartInputProps) {
   const [query, setQuery] = useState("");
   const [isModalOpen, setModalOpen] = useState(false);
   const [isGraphOpen, setIsGraphOpen] = useState(false);
@@ -22,21 +23,35 @@ export default function ChartInput({ onSubmit, loading }: ChartInputProps) {
   const openPromptHistory = () => setPromptHistoryOpen(true);
   const closePromptHistory = () => setPromptHistoryOpen(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>, asset_id: string) => {
     e.preventDefault();
-    if (!query.trim()) return;
 
-    fetch("http://localhost:8000/api/save-prompt/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query }),
-    })
-      .then((res) => res.json())
-      .then(() => {
-        onSubmit(query);
-        setQuery("");
-      })
-      .catch((error) => console.error(error));
+    if (!query.trim() || !asset_id) {
+      console.error("Missing query or asset_id");
+      return;
+    }
+  
+    const data = {
+      query,
+      asset_id
+    };
+
+    console.log("Sending data:", data);
+    
+    try {
+      const response = await fetch("http://localhost:8000/api/save-prompt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+  
+      const result = await response.json();
+      console.log("Upload Success:", result);
+      onSubmit(data.query);
+      setQuery("");
+    } catch (error) {
+      console.error("Upload Error:", error);
+    }
   };
 
   return (
@@ -50,7 +65,11 @@ export default function ChartInput({ onSubmit, loading }: ChartInputProps) {
         />    
       </div>
 
-      <form onSubmit={handleSubmit} className="chart-input-wrapper">
+     <form
+        onSubmit={(e) => handleSubmit(e, selectedAsset)} 
+        className="chart-input-wrapper"
+      >
+  
         <input
           type="text"
           placeholder="Enter chart suggestion..."
@@ -68,7 +87,7 @@ export default function ChartInput({ onSubmit, loading }: ChartInputProps) {
         <button onClick={openModal}>Archived charts</button>
       </div>
 
-      <PromptHistory isOpen={isPromptHistoryOpen} onClose={closePromptHistory} onSubmit={onSubmit} />
+      <PromptHistory isOpen={isPromptHistoryOpen} onClose={closePromptHistory} onSubmit={onSubmit} selectedAsset={selectedAsset} />
 
       <Modal isOpen={isModalOpen} onClose={closeModal}>
         <div className="modal-header">
@@ -79,7 +98,7 @@ export default function ChartInput({ onSubmit, loading }: ChartInputProps) {
             </button>
           )}
         </div>
-        <Archived_Graphs_List isOpen={isModalOpen} onClose={closeModal} setIsGraphOpen={setIsGraphOpen} />
+        <Archived_Graphs_List isOpen={isModalOpen} onClose={closeModal} setIsGraphOpen={setIsGraphOpen} selectedAsset={selectedAsset} />
       </Modal>
     </div>
   );

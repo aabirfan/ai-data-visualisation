@@ -22,6 +22,7 @@ interface ChartJsCodeRendererProps {
 interface llmChartProps {
   loading: boolean; 
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  selectedAsset: string; 
 }
 
 const ChartJs: React.FC<ChartJsCodeRendererProps> = ({ chartData, chartOptions, chartType }) => {
@@ -53,7 +54,7 @@ const ChartJs: React.FC<ChartJsCodeRendererProps> = ({ chartData, chartOptions, 
   );
 };
 
-function LLMCharts({ loading, setLoading }: llmChartProps) {
+function LLMCharts({ loading, setLoading, selectedAsset}: llmChartProps) {
   const [response, setResponse] = useState<any | null>(null);
   const [chartData, setChartData] = useState<any | null>(null);
   const [chartOptions, setChartOptions] = useState<any | null>(null);
@@ -67,7 +68,7 @@ function LLMCharts({ loading, setLoading }: llmChartProps) {
   const openModal = () => setModalOpen(true);
   const closeModal = () => setModalOpen(false);
 
-  const savePromptHistory = (query: string) => {
+  const savePromptHistory = (query: string ) => {
     if (typeof query !== "string") {
       return; 
     }
@@ -79,12 +80,12 @@ function LLMCharts({ loading, setLoading }: llmChartProps) {
   
   return (
     <div className="llm-container">
-      
-      <ChartInput
-  onSubmit={(query) => { 
+      <ChartInput 
+    onSubmit={(query) => { 
     savePromptHistory(query);
-    handleChartRequest(query, setLoading, setResponse, setChartData, setChartOptions, setChartType);
+    handleChartRequest(query, selectedAsset, setLoading, setResponse, setChartData, setChartOptions, setChartType);
   }}
+  selectedAsset={selectedAsset}
   loading={loading}
 />
 
@@ -115,7 +116,7 @@ function LLMCharts({ loading, setLoading }: llmChartProps) {
             <div className="save-btn">
               <button
                 onClick={() => {
-                  saveGraph(chartData, chartOptions, chartType, chartTitle, chartDescription); 
+                  saveGraph(chartData, chartOptions, chartType, chartTitle, chartDescription, selectedAsset); 
                   setModalOpen(false);
                 }}
               >
