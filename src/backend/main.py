@@ -125,8 +125,8 @@ async def fetch_prompt_history(data: asset_req):
     return JSONResponse(content={"data": history}, media_type="application/json")  
 
 @app.delete("/api/clear-prompt-history/")
-async def delete_prompt_history():
-    return clear_prompt_history()
+async def delete_prompt_history(data: asset_req):
+    return clear_prompt_history(data.asset_id)
 
 @app.get("/assets")
 async def get_assets():
