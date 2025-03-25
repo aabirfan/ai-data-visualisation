@@ -16,9 +16,12 @@ def add_prompt_history(query: str, asset_id: str):
         if result.inserted_id is None:
             raise HTTPException(status_code=500)
 
-        if collection.count_documents({}) > 10:
-            oldest_entry = collection.find().sort("timestamp", 1).limit(1)
-            collection.delete_one({"_id": oldest_entry[0]["_id"]})
+        count = collection.count_documents({"asset_id": asset_id})
+        if count > 10:
+            excess = count - 10
+            oldest_entries = collection.find({"asset_id": asset_id}).sort("timestamp", 1).limit(excess)
+            ids_to_delete = [entry["_id"] for entry in oldest_entries]
+            collection.delete_many({"_id": {"$in": ids_to_delete}})
 
     except PyMongoError as e:
         raise HTTPException(status_code=500)
