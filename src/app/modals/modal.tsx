@@ -1,6 +1,7 @@
 import React from 'react';
 import "../styles/modals.css";
 
+
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
