@@ -44,9 +44,9 @@ def get_prompt_history(asset_id):
     except PyMongoError as e:
         raise HTTPException(status_code=500)
     
-def clear_prompt_history():
+def clear_prompt_history(asset_id: str):
     try:
-        collection.delete_many({})  
+        collection.delete_many({"asset_id": asset_id}) 
         return 
     except PyMongoError as e:
         raise HTTPException(status_code=500)
