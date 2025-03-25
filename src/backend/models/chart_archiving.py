@@ -18,9 +18,9 @@ def addArchivedChart(chart_data: str):
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
 
-def get_chart_data():
+def get_chart_data(asset_id):
     try:
-        charts = collection.find()  
+        charts = collection.find({"asset_id": asset_id})  
         charts_list = list(charts)  
         
         for chart in charts_list:

@@ -152,7 +152,7 @@ def process_pipeline_2_queries(filled_queries):
 
 ######### PIPELINE 2 RUN
 
-def process_user_query(user_query):
+def process_user_query(user_query, asset_id):
     query_template, matched_query = vector_search(user_query)
 
     if not query_template:
@@ -168,6 +168,6 @@ def process_user_query(user_query):
     if not final_queries:
         return {"error": "Query filling failed."}
 
-    raw_results = execute_queries(final_queries)
+    raw_results = execute_queries(final_queries, asset_id)
 
     return generate_chart_from_query_results(user_query, raw_results)

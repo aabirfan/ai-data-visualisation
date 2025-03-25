@@ -11,7 +11,7 @@ load_dotenv("../../.env.local")
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 model = genai.GenerativeModel("models/gemini-1.5-flash")
 
-def generate_mongo_query_from_prompt(prompt):
+def generate_mongo_query_from_prompt(prompt, asset_id):
     reference_query_sensors = {
         "metadata": {"name": {"$in": ["pH in", "pH out"]}},
         "timestamp": {

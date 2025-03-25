@@ -1,4 +1,4 @@
-const saveGraph = async (chartData: any, chartOptions: any, chartType: any, chartTitle: string, chartDescription: string) => {
+const saveGraph = async (chartData: any, chartOptions: any, chartType: any, chartTitle: string, chartDescription: string, assetId:string) => {
     const timestamp = Date.now();
   
     const data = {
@@ -7,7 +7,8 @@ const saveGraph = async (chartData: any, chartOptions: any, chartType: any, char
       chartType,       
       date: timestamp,
       title: chartTitle,
-      description: chartDescription
+      description: chartDescription,
+      asset_id: assetId
     };
   
     try {

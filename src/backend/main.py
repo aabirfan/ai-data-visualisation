@@ -20,7 +20,9 @@ from models.chart_archiving import addArchivedChart
 from models.chart_archiving import get_chart_data
 from models.chart_archiving import remove_saved_data
 
-from models.prompt_history import add_prompt_history, get_prompt_history, PromptRequest, clear_prompt_history
+from models.prompt_history import add_prompt_history, get_prompt_history, clear_prompt_history
+
+from utils.fetch_assets import fetch_assets_from_db
 
 load_dotenv("../../.env.local")
 
@@ -36,6 +38,7 @@ app.add_middleware(
 
 class QueryRequest(BaseModel):
     query: str
+    selectedAsset: str
 
 class ChartData(BaseModel):
     chartData: Any
@@ -44,9 +47,17 @@ class ChartData(BaseModel):
     date: int
     title: str
     description: str
+    asset_id: str
 
 class removeData(BaseModel):
     timestamp: int
+
+class asset_req(BaseModel):
+    asset_id: str  
+
+class PromptRequest(BaseModel):
+    query: str 
+    asset_id: str
 
 
 @app.get("/")
@@ -54,11 +65,12 @@ def read_root():
     return {"Hello": "World test"}
 
 @app.post("/query")
-async def process_query(query_request: QueryRequest):
-
+async def process_query(query_request: PromptRequest):
+    print(f"Received query_request: {query_request}")
+    print(f"Asset ID: {query_request.asset_id}")
     #Temporary, the prompt has to start with manual to receive a manual chart
     if query_request.query.lower().startswith("manual"):
-        response, sensor_name  = process_sensor_query(query_request.query)
+        response, sensor_name  = process_sensor_query(query_request.query,  query_request.asset_id)
 
         print(f"DEBUG: Sensor Name received in process_query: {sensor_name}")
 
@@ -70,10 +82,10 @@ async def process_query(query_request: QueryRequest):
     
     #Temporary, the prompt has to start with rag to receive a rag chart
     if query_request.query.lower().startswith("rag"):
-        return process_user_query(query_request.query)  
+        return process_user_query(query_request.query, query_request.asset_id)  
 
     #PIPELINE 3
-    return process_llm_pipeline(query_request.query)
+    return process_llm_pipeline(query_request.query, query_request.asset_id)
 
 
 @app.post("/save_chart")
@@ -91,10 +103,9 @@ async def process_saving_chart(data: ChartData):
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
     
 
-@app.get("/get_chart_data")
-async def process_getting_saved_charts():
-   list = get_chart_data()
-   print(list)
+@app.post("/get_chart_data")
+async def process_getting_saved_charts(data: asset_req):
+   list = get_chart_data(data.asset_id)
    return JSONResponse(content={"data": list})  
 
 @app.post("/remove_saved_chart")
@@ -105,17 +116,23 @@ async def remove_saved_chart(data: removeData):
 
 @app.post("/api/save-prompt/")
 async def save_prompt(data: PromptRequest):
-    add_prompt_history(data.query)
-    return JSONResponse(content={"message": "Prompt saved"})
+    add_prompt_history(data.query, data.asset_id)  
+    return JSONResponse(content={"message": "Prompts saved"})
 
-@app.get("/api/get-prompt-history/")
-async def fetch_prompt_history():
-    history = get_prompt_history()
+@app.post("/api/get-prompt-history/")
+async def fetch_prompt_history(data: asset_req):
+    history = get_prompt_history(data.asset_id)
     return JSONResponse(content={"data": history}, media_type="application/json")  
 
 @app.delete("/api/clear-prompt-history/")
 async def delete_prompt_history():
     return clear_prompt_history()
+
+@app.get("/assets")
+async def get_assets():
+    assets = fetch_assets_from_db()
+    print(assets)
+    return JSONResponse(content={"data": assets})
 
 
 

@@ -9,9 +9,10 @@ import { IoMdClose } from "react-icons/io";
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
+  selectedAsset: string;
 }
 
-const Archived_Graphs_List: React.FC<ModalProps & { setIsGraphOpen: (isOpen: boolean) => void }> = ({ isOpen, onClose, setIsGraphOpen }) => {
+const Archived_Graphs_List: React.FC<ModalProps & { setIsGraphOpen: (isOpen: boolean) => void }> = ({ isOpen, onClose, selectedAsset, setIsGraphOpen }) => {
   const [listData, setListData] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,9 +69,14 @@ const Archived_Graphs_List: React.FC<ModalProps & { setIsGraphOpen: (isOpen: boo
   };
   
 
-  const fetchData = async () => {
+  const fetchData = async (asset_id: string) => {
     try {
-      const response = await fetch("http://localhost:8000/get_chart_data");
+      console.log(asset_id, "Failed" );
+      const response = await fetch("http://localhost:8000/get_chart_data",{
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ asset_id }),
+      });
       if (!response.ok) {
         throw new Error("Failed to fetch data");
       }
@@ -86,14 +92,14 @@ const Archived_Graphs_List: React.FC<ModalProps & { setIsGraphOpen: (isOpen: boo
 
   useEffect(() => {
     setLoading(true);
-    fetchData();
+    fetchData(selectedAsset);
   }, [isOpen]);
 
 
   const handleRemoveGraph = async (timestamp: any) => {
     try {
       await removeGraph(timestamp);
-      await fetchData();
+      await fetchData(selectedAsset);
     } catch (error) {
       console.error("Error removing graph:", error);
     }
@@ -124,8 +130,8 @@ const Archived_Graphs_List: React.FC<ModalProps & { setIsGraphOpen: (isOpen: boo
               <h2><strong>Are you sure you want to delete?</strong></h2>
             </div>
             <div className="cfm-btn">
-            <button onClick={() => handleRemoveGraph(chartDate)}>Yes</button>
-            <button onClick={closeSModal}>No</button>
+            <button onClick={closeSModal}>Cancel</button>
+            <button onClick={() => handleRemoveGraph(chartDate)}>Yes, delete</button>
             </div>
       </SmallDialog>
 

@@ -43,7 +43,7 @@ def execute_pie_chart_query(query):
     return results
 
 #Executes single query
-def execute_query(query):
+def execute_query(query, asset_id):
     if not isinstance(query, (dict, list)):  
         print(f"ERROR: Query is not a valid MongoDB format! Type: {type(query)} -> Value: {query}")
         return {"error": "Invalid query format"}
@@ -52,6 +52,9 @@ def execute_query(query):
         return execute_pie_chart_query(query)  
 
     query = clean_query_timestamps(query)
+
+    if isinstance(query, dict):
+        query["metadata.asset_id"] = asset_id
 
     if "metadata" in query and isinstance(query["metadata"], dict) and "name" in query["metadata"]:
         sensor_filter = query["metadata"]["name"]
@@ -80,13 +83,13 @@ def execute_query(query):
     return results
 
 #Executes multiple queries
-def execute_queries(filled_queries):
+def execute_queries(filled_queries, asset_id):
     if not isinstance(filled_queries, list):
         return {"error": "Invalid query format"}
 
     results = []
     for query in filled_queries:
-        query_results = execute_query(query)  
+        query_results = execute_query(query, asset_id)  
 
         if query_results and "error" not in query_results:
             results.extend(query_results)

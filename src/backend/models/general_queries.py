@@ -5,9 +5,12 @@ from .database import collection as Telemetry
 import json
 
 @lru_cache(maxsize=50)  
-def fetch_sensor_values(start_date, end_date, sensor_name, limit=None, query_type="values"):
+def fetch_sensor_values(start_date, end_date, sensor_name, asset_id, limit=None, query_type="values"):
     try:
-        query = {"metadata.name": {"$regex": f"^{sensor_name}$", "$options": "i"}} 
+        query = {
+            "metadata.name": {"$regex": f"^{sensor_name}$", "$options": "i"},
+            "metadata.asset_id": asset_id  
+        }
         
         if start_date:
             date_range = {"$gte": datetime.strptime(start_date, "%Y-%m-%d")}
