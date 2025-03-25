@@ -4,7 +4,7 @@ from models.mongo_query_generation import generate_mongo_query_from_prompt
 from dotenv import load_dotenv
 
 
-def process_llm_pipeline(user_query):
+def process_llm_pipeline(user_query, asset_id):
     print(f"Pipeline 3 is running for: {user_query}")
 
     mongo_query = generate_mongo_query_from_prompt(user_query)
@@ -13,7 +13,7 @@ def process_llm_pipeline(user_query):
 
     print(f"Type of mongo query: {type(mongo_query)}")
 
-    query_results = execute_queries([mongo_query]) 
+    query_results = execute_queries([mongo_query], asset_id) 
 
     return generate_chart_from_query_results(user_query, query_results)
 
