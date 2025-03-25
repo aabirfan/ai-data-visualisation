@@ -4,7 +4,9 @@ import Modal from "../../../modals/modal";
 import Archived_Graphs_List from "./archived_graphs_list";
 import PromptHistory from "./promptHistory"; 
 import "../../../styles/modals.css";
-import { IoMdClose } from "react-icons/io";
+import { IoMdArrowBack } from "react-icons/io";
+
+
 
 interface ChartInputProps {
   onSubmit: (query: string) => void; 
@@ -91,12 +93,12 @@ export default function ChartInput({ onSubmit, loading, selectedAsset }: ChartIn
 
       <Modal isOpen={isModalOpen} onClose={closeModal}>
         <div className="modal-header">
-          <h2>Archived Charts</h2>
-          {!isGraphOpen && ( 
+        {!isGraphOpen && ( 
             <button className="close-btn" onClick={closeModal}>
-              <IoMdClose />
+          <IoMdArrowBack />
             </button>
           )}
+         <h2>Archived Charts</h2>
         </div>
         <Archived_Graphs_List isOpen={isModalOpen} onClose={closeModal} setIsGraphOpen={setIsGraphOpen} selectedAsset={selectedAsset} />
       </Modal>

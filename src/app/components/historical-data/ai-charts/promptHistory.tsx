@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import Modal from "../../../modals/modal";
-import { IoMdClose } from "react-icons/io";
+import { IoMdArrowBack } from "react-icons/io";
+
+
 
 interface PromptHistoryProps {
   isOpen: boolean;
@@ -50,7 +52,10 @@ export default function PromptHistory({ isOpen, onClose, onSubmit, selectedAsset
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <div className="modal-title">
+      <div className="modal-header">
+        <button className="close-btn" onClick={onClose}>
+          <IoMdArrowBack />
+        </button>
         <h2>Prompt History</h2>
       </div>
 
@@ -83,13 +88,7 @@ export default function PromptHistory({ isOpen, onClose, onSubmit, selectedAsset
         ) : (
           <p className="no-history-message">No prompt history yet.</p>
         )}
-      </div>
-
-      <div className="modal-header">
-        <button className="close-btn" onClick={onClose}>
-          <IoMdClose />
-        </button>
-      </div>
+      </div>        
       <button className="clear-history-btn" onClick={handleClearHistory}>
         Clear History
       </button>

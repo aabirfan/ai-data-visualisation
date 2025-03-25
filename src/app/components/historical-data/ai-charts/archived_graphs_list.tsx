@@ -4,7 +4,8 @@ import { ChartJs } from './llmCharts';
 import Modal from '@/app/modals/modal';
 import { removeGraph } from '@/app/utils/archive_graph';
 import { SmallDialog } from '@/app/modals/dialog_modal';
-import { IoMdClose } from "react-icons/io";
+import { IoMdArrowBack } from "react-icons/io";
+
 
 interface ModalProps {
   isOpen: boolean;
@@ -111,18 +112,21 @@ const Archived_Graphs_List: React.FC<ModalProps & { setIsGraphOpen: (isOpen: boo
     <div className="list-container">
       <Modal isOpen={isLModalOpen} onClose={closeModal}>
       <div className="modal-header">
-        <h2><strong>{chartTitle}</strong>, Saved: {new Date(chartDate).toLocaleString()}</h2>
-        <button className="close-btn" onClick={() => {
+      <button className="close-btn" onClick={() => {
         setLModalOpen(false); 
         setIsGraphOpen(false); 
     }}>
-        <IoMdClose />
+        <IoMdArrowBack />
         </button>
+        <h2>Archived Charts / <strong>{chartTitle}</strong></h2>
+        </div>
+        <div className='saved-line'>
+        <p>Saved: {new Date(chartDate).toLocaleString()}</p>
         </div>
         <ChartJs chartData={chartData} chartOptions={chartOptions} chartType={chartType} />
         <div className="save-btn">
         <button onClick={downloadChart}>Download Chart</button>
-      </div>
+        </div>
       </Modal>
 
       <SmallDialog isOpen={isSmodalOpen} onClose={closeSModal}>

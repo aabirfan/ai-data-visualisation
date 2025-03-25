@@ -1,5 +1,6 @@
 import React from 'react';
 import { IoMdClose } from "react-icons/io";
+import { FaArrowLeft } from "react-icons/fa";
 import "../styles/modals.css";
 
 interface ModalProps {
