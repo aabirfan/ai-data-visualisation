@@ -58,9 +58,9 @@ def execute_query(query, asset_id):
 
     if "metadata" in query and isinstance(query["metadata"], dict) and "name" in query["metadata"]:
         sensor_filter = query["metadata"]["name"]
-        if isinstance(sensor_filter, dict) and "$in" in sensor_filter:
-            query["metadata.name"] = {"$in": sensor_filter["$in"]}
-            del query["metadata"]  
+        query["metadata.name"] = sensor_filter  
+        del query["metadata"]
+
 
     sort_field = query.pop("sort", None) if "sort" in query else None
 
