@@ -29,21 +29,29 @@ def generate_chart_config(chart_config, grouped_data, all_timestamps, interval_m
     print(f"DEBUG: Using shared time range from {start_time.strftime('%H:%M')} to {end_time.strftime('%H:%M')}")
 
     chart_config["data"]["datasets"] = []
-    colors = ["rgb(0, 243, 255)", "rgb(255, 99, 132)", "rgb(75, 192, 192)", "rgb(255, 206, 86)"]
 
-    for sensor_idx, (sensor_name, date_data) in enumerate(grouped_data.items()):
-        for idx, date in enumerate(sorted(date_data.keys())):
+    colors = [
+        "rgb(0, 243, 255)", "rgb(255, 99, 132)", "rgb(255, 206, 86)", "rgb(153, 102, 255)","rgb(255, 159, 64)", "rgb(54, 162, 235)", "rgb(201, 203, 207)"  
+    ]
+
+    color_index = 0  
+
+    for sensor_name, date_data in grouped_data.items():
+        for date in sorted(date_data.keys()):
             data = date_data[date]
             dataset_values = [
                 {"x": time, "y": data.get(time, None)}
                 for time in shared_time_labels
             ]
 
+            color = colors[color_index % len(colors)]
+            color_index += 1
+
             dataset = {
                 "label": f"{sensor_name} - {date}",
                 "data": dataset_values,
-                "borderColor": colors[(sensor_idx + idx) % len(colors)],
-                "backgroundColor": colors[(sensor_idx + idx) % len(colors)],
+                "borderColor": color,
+                "backgroundColor": color,
                 "borderWidth": 2,
                 "fill": False,
                 "pointRadius": 3,
@@ -72,6 +80,7 @@ def generate_chart_config(chart_config, grouped_data, all_timestamps, interval_m
     }
 
     return json.dumps(chart_config)
+
 
 
 def fill_llm_chart_data(chart_config, sensor_data, sensor_label=None, interval_minutes=5):
