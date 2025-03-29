@@ -14,7 +14,9 @@ def clean_query_timestamps(query):
 
 #Executes for pie chart data (format is different)
 def execute_pie_chart_query(query):
-    print("Executing pie chart aggregation.")
+    print("Executing pie chart.")
+    
+    # Convert timestamp strings in $match to datetime
     for stage in query:
         if "$match" in stage and "timestamp" in stage["$match"]:
             if "$gte" in stage["$match"]["timestamp"] and isinstance(stage["$match"]["timestamp"]["$gte"], str):
@@ -32,15 +34,37 @@ def execute_pie_chart_query(query):
     try:
         results = list(Telemetry.aggregate(query))
     except Exception as e:
-        print(f"Aggregation query failed. Reason: {str(e)}")
         return {"error": "Aggregation query execution failed."}
 
     if not results:
-        print("INFO: No results found for aggregation query.")
         return {"error": "No distribution data available."}
 
     print(f"INFO: Retrieved {len(results)} records from aggregation.")
-    return results
+
+    patched_results = []
+    for r in results:
+        if isinstance(r.get("_id"), dict) and {"hour", "sensor"}.issubset(r["_id"]):
+            hour = r["_id"]["hour"]
+            sensor = r["_id"]["sensor"]
+            date = query[0]["$match"]["timestamp"]["$gte"].date()
+
+            timestamp = datetime(
+                year=date.year, month=date.month, day=date.day, hour=hour, tzinfo=timezone.utc
+            )
+
+            patched_results.append({
+                "timestamp": timestamp,
+                "value": r.get("avgValue") or r.get("averageValue"),
+                "metadata": {"name": sensor}
+            })
+        else:
+            patched_results.append({
+            "_id": str(r.get("_id", "Unknown")),
+            "count": r.get("count", 0)
+            })
+
+
+    return patched_results
 
 #Executes single query
 def execute_query(query, asset_id):
