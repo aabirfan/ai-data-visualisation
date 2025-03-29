@@ -5,16 +5,13 @@ import google.generativeai as genai
 import os
 from .database import collection as Telemetry  
 from dotenv import load_dotenv
-from functools import lru_cache
+from utils.sensor_parser import get_sensor_types
 
 load_dotenv("../../.env.local")
 
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 model = genai.GenerativeModel("models/gemini-1.5-flash")
 
-@lru_cache(maxsize=1)
-def get_all_sensor_names():
-    return Telemetry.distinct("metadata.name")
 
 def generate_mongo_query_from_prompt(prompt):
     reference_query_sensors = {
@@ -37,7 +34,7 @@ def generate_mongo_query_from_prompt(prompt):
         {"$sort": {"count": -1}}
     ]
 
-    known_sensors = get_all_sensor_names()
+    known_sensors = get_sensor_types()
     sensor_list_string = "\n- " + "\n- ".join(sorted(known_sensors))
 
     system_instruction = (
@@ -54,8 +51,10 @@ def generate_mongo_query_from_prompt(prompt):
         "- Use `$in` if user asks for multiple sensors.\n"
         "- Pie charts must use an aggregation pipeline.\n"
         "- No markdown or explanations, only return valid MongoDB syntax."
-        "- Only generate an aggregation pipeline (a list of stages) when the prompt mentions: distribution, proportion, or pie chart"
-        "- Otherwise, always generate a standard MongoDB query (a JSON object)."
+        "- Always choose the query format based on intent:"
+        "- If the user prompt includes words like **distribution**, **proportion**, **percent**, or **pie chart** → return an **aggregation pipeline** (list)."
+        "- For everything else → return a **standard MongoDB query** (single JSON object)."
+        "- NEVER return an aggregation pipeline unless the intent is clearly distribution-related."
     )
 
     print(f"Sending prompt to LLM for query generation: {prompt}")

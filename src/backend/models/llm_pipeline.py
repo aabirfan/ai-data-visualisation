@@ -1,5 +1,5 @@
 from utils.mongo_executor import execute_queries  
-from utils.chart_utils import generate_chart_from_query_results
+from utils.chart_utils import generate_chart_from_query_results, fill_pie_chart_data
 from models.mongo_query_generation import generate_mongo_query_from_prompt
 from dotenv import load_dotenv
 
@@ -13,7 +13,9 @@ def process_llm_pipeline(user_query, asset_id):
 
     print(f"Type of mongo query: {type(mongo_query)}")
 
-    query_results = execute_queries([mongo_query], asset_id) 
+    query_results = execute_queries([mongo_query], asset_id)
+
+    if isinstance(mongo_query, list):
+        return fill_pie_chart_data(query_results)
 
     return generate_chart_from_query_results(user_query, query_results)
-
