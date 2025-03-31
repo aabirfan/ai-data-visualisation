@@ -1,15 +1,17 @@
 import json
-from datetime import datetime, timezone
+from datetime import datetime
 from pymongo import ASCENDING
 import google.generativeai as genai
 import os
 from .database import collection as Telemetry  
 from dotenv import load_dotenv
+from utils.sensor_parser import get_sensor_types
 
 load_dotenv("../../.env.local")
 
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 model = genai.GenerativeModel("models/gemini-1.5-flash")
+
 
 def generate_mongo_query_from_prompt(prompt):
     reference_query_sensors = {
@@ -32,60 +34,55 @@ def generate_mongo_query_from_prompt(prompt):
         {"$sort": {"count": -1}}
     ]
 
+    known_sensors = get_sensor_types()
+    sensor_list_string = "\n- " + "\n- ".join(sorted(known_sensors))
+
     system_instruction = (
         "You are an AI that generates MongoDB queries based on user requests. "
-        "Your response **must be a JSON object** and follow one of these formats:\n\n"
-        "If the user asks to compare sensors, return a query with '$in' including multiple sensors."
+        "Your response **must be a JSON object** or a list of aggregation stages depending on context.\n\n"
+        f"### Valid Sensor Names:\n{sensor_list_string}\n\n"
         "### 1. Standard Sensor Queries (Line/Bar Charts):\n"
         f"{json.dumps(reference_query_sensors, indent=2)}\n\n"
         "### 2. Pie Chart (Distribution Queries) [**Use a List!**]:\n"
         f"{json.dumps(reference_query_distribution, indent=2)}\n\n"
         "### Rules for Query Generation:\n"
-        "- **Time-based requests**: Always include 'timestamp' with '$gte' and '$lt'.\n"
-        "- **Sensor selection**: If the user asks for multiple sensors, use '$in'.\n"
-        "- **Comparisons**: If the query involves 'compare', return a query for multiple sensors.\n"
-        "- **Pie Charts (Distribution Queries)**: **Use an aggregation pipeline!**\n"
-        "  - **DO NOT** use 'metadata.name' directly.\n"
-        "  - Instead, use `$group` to count occurrences.\n"
-        "  - **DO NOT** include 'ALL_SENSORS' or 'REMOVE_METADATA' in metadata.name.\n"
-        "- **Sorting**: Always include 'sort': { 'timestamp': 1 } for time-based queries.\n"
-        "- **Only return a JSON object (or list for aggregation queries)—no explanations, markdown, or extra text.**"
+        "- Resolve any fuzzy, approximate, or misspelled sensor names to the closest valid name from the list.\n"
+        "- Time-based requests must include timestamp filtering.\n"
+        "- Use `$in` if user asks for multiple sensors.\n"
+        "- Pie charts must use an aggregation pipeline.\n"
+        "- No markdown or explanations, only return valid MongoDB syntax."
+        "- Always choose the query format based on intent:"
+        "- If the user prompt includes words like **distribution**, **proportion**, **percent**, or **pie chart** → return an **aggregation pipeline** (list)."
+        "- For everything else → return a **standard MongoDB query** (single JSON object)."
+        "- NEVER return an aggregation pipeline unless the intent is clearly distribution-related."
     )
 
-    print(f"DEBUG: Sending prompt to LLM for query generation: {prompt}")
+    print(f"Sending prompt to LLM for query generation: {prompt}")
 
     try:
         response = model.generate_content(f"{system_instruction}\nUser Query: {prompt}")
+        raw_response = response.text.strip()
 
-        if not response.text.strip():
-            print("ERROR: LLM returned an empty query response.")
-            return None
-
-        clean_response = response.text.strip().strip("```json").strip("```")
+        clean_response = raw_response.strip("```json").strip("```").strip()
         mongo_query = json.loads(clean_response)
 
-        if isinstance(mongo_query, dict) and "metadata" in mongo_query and "name" in mongo_query["metadata"]:
-            if mongo_query["metadata"]["name"] in ["None", "ALL_SENSORS", None]:
-                print("INFO: LLM mistakenly included 'metadata.name'. Replacing with correct aggregation pipeline.")
-                mongo_query = [  
-                    {"$match": {"timestamp": mongo_query["timestamp"]}},  
-                    {"$group": {"_id": "$metadata.name", "count": {"$sum": 1}}},
-                    {"$sort": {"count": -1}}
-                ]
+        if isinstance(mongo_query, list):
+            for stage in mongo_query:
+                if "$match" in stage and "timestamp" in stage["$match"]:
+                    ts = stage["$match"]["timestamp"]
+                    if "$gte" in ts:
+                        ts["$gte"] = datetime.fromisoformat(ts["$gte"].replace("Z", "+00:00"))
+                    if "$lt" in ts:
+                        ts["$lt"] = datetime.fromisoformat(ts["$lt"].replace("Z", "+00:00"))
 
+        elif isinstance(mongo_query, dict) and "timestamp" in mongo_query:
+            ts = mongo_query["timestamp"]
+            if "$gte" in ts:
+                ts["$gte"] = datetime.fromisoformat(ts["$gte"].replace("Z", "+00:00"))
+            if "$lt" in ts:
+                ts["$lt"] = datetime.fromisoformat(ts["$lt"].replace("Z", "+00:00"))
 
-        if isinstance(mongo_query, dict) and "timestamp" in mongo_query:
-            if "$gte" in mongo_query["timestamp"]:
-                mongo_query["timestamp"]["$gte"] = datetime.fromisoformat(
-                    mongo_query["timestamp"]["$gte"].replace("Z", "+00:00")
-                )
-            if "$lt" in mongo_query["timestamp"]:
-                mongo_query["timestamp"]["$lt"] = datetime.fromisoformat(
-                    mongo_query["timestamp"]["$lt"].replace("Z", "+00:00")
-                )
-
-        print(f"DEBUG: Final MongoDB Query (Corrected): {json.dumps(mongo_query, indent=2, default=str)}")
-
+        print(f"Final MongoDB Query: {json.dumps(mongo_query, indent=2, default=str)}")
         return mongo_query
 
     except json.JSONDecodeError as e:

@@ -62,21 +62,23 @@ def generate_chart_config(chart_config, grouped_data, all_timestamps, interval_m
 
     chart_config["data"]["labels"] = shared_time_labels
 
-    chart_config["options"] = {
-        "scales": {
-            "x": {
-                "type": "category",
-                "labels": shared_time_labels,
-                "ticks": {
-                    "autoSkip": True,
-                    "maxTicksLimit": 10,
-                    "minRotation": 45
-                }
-            },
-            "y": {
-                "grid": {"color": "rgba(255, 255, 255, 0.2)"}
-            }
-        }
+    chart_config.setdefault("options", {})
+    chart_config["options"].setdefault("scales", {})
+
+    chart_config["options"]["scales"]["x"] = {
+    "type": "category",
+    "labels": shared_time_labels,
+    "ticks": {
+        "autoSkip": True,
+        "maxTicksLimit": 10,
+        "minRotation": 45
+    }
+}
+
+    chart_config["options"]["scales"].setdefault("y", {})
+    if "grid" not in chart_config["options"]["scales"]["y"]:
+            chart_config["options"]["scales"]["y"]["grid"] = {
+        "color": "rgba(255, 255, 255, 0.2)"
     }
 
     return json.dumps(chart_config)
@@ -138,13 +140,29 @@ def fill_pie_chart_data(sensor_data):
 
     print("INFO: Processing pie chart data.")
 
-    labels = [str(entry.get("_id", "Unknown")) for entry in sensor_data]  
-    data_values = [entry.get("count", 0) for entry in sensor_data]  
+    labels = []
+    data_values = []
+
+    for entry in sensor_data:
+        _id = entry.get("_id", "Unknown")
+        count = entry.get("count", 0)
+
+        # Normalize the _id to a string label
+        if isinstance(_id, dict):
+            label = ", ".join([f"{k}: {v}" for k, v in _id.items()])
+        elif _id is None:
+            label = "Unknown"
+        else:
+            label = str(_id)
+
+        labels.append(label)
+        data_values.append(count)
 
     colors = [
         "rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)",
         "rgb(75, 192, 192)", "rgb(153, 102, 255)", "rgb(255, 159, 64)",
-        "rgb(0, 243, 255)", "rgb(128, 128, 128)"
+        "rgb(0, 243, 255)", "rgb(128, 128, 128)", "rgb(255, 105, 180)",
+        "rgb(60, 179, 113)", "rgb(255, 140, 0)", "rgb(100, 149, 237)"
     ]
 
     background_colors = [colors[i % len(colors)] for i in range(len(labels))]
@@ -167,7 +185,13 @@ def fill_pie_chart_data(sensor_data):
             "plugins": {
                 "title": {
                     "display": True,
-                    "text": "pH Value Distribution"
+                    "text": "Value Distribution"
+                },
+                "legend": {
+                    "display": True,
+                    "labels": {
+                        "color": "white"
+                    }
                 }
             }
         }
