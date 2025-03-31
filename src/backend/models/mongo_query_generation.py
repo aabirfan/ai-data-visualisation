@@ -83,7 +83,12 @@ def generate_mongo_query_from_prompt(prompt):
                 ts["$lt"] = datetime.fromisoformat(ts["$lt"].replace("Z", "+00:00"))
 
         print(f"Final MongoDB Query: {json.dumps(mongo_query, indent=2, default=str)}")
-        return mongo_query
+        query_type = "pie" if isinstance(mongo_query, list) else "standard"
+
+        return {
+            "query": mongo_query,
+            "intent": query_type
+        }
 
     except json.JSONDecodeError as e:
         print("LLM JSON Error:", str(e))
