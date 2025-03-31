@@ -45,7 +45,7 @@ def execute_pie_chart_query(query):
     try:
         results = list(Telemetry.aggregate(query))
     except Exception as e:
-        return {"error": f"Aggregation query execution failed: {str(e)}"}
+        return {"error": "Aggregation query execution failed."}
 
     if not results:
         return {"error": "No distribution data available."}
