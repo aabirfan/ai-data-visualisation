@@ -76,19 +76,11 @@ You are a Chart.js assistant. Your task is to choose the most suitable chart typ
 - Return **only** a valid JSON object representing a Chart.js configuration.
 - Do **not** include markdown, explanations, or extra text.
 - Use placeholders like `[]` for data and labels to be filled in later.
-- Always include both `scales.y.min` and `scales.y.max` in the config.
-- Use the actual observed range provided: `min = {summary_stats.min}`, `max = {summary_stats.max}`.
-- Add a small buffer (~10%) around the min and max if needed to make the chart more readable.
-- Do not use `suggestedMin` or `suggestedMax`; use explicit `min` and `max`.
-
-
-
+- Do not include hardcoded `y.min` or `y.max`. Let Chart.js automatically determine the Y-axis range based on the visible data.
 
 ### Reference Format:
 {json.dumps(reference_chart, indent=2)}
 """
-
-
     try:
         print(f"Sending request to LLM for '{sensor_name}' with summary stats")
         response = model.generate_content(prompt)
