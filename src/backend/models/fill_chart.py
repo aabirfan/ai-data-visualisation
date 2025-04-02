@@ -17,6 +17,7 @@ def generate_time_grid(start_time, end_time, interval_minutes=5):
 
 #Config chart to fix any LLM chart code
 def generate_chart_config(chart_config, grouped_data, all_timestamps, interval_minutes):
+    
     min_time = min(dt.time() for dt in all_timestamps)  
     max_time = max(dt.time() for dt in all_timestamps)  
 
@@ -25,9 +26,7 @@ def generate_chart_config(chart_config, grouped_data, all_timestamps, interval_m
     end_time = datetime.combine(reference_date, max_time)
 
     shared_time_labels = generate_time_grid(start_time, end_time, interval_minutes)
-
-    print(f"DEBUG: Using shared time range from {start_time.strftime('%H:%M')} to {end_time.strftime('%H:%M')}")
-
+    
     chart_config["data"]["datasets"] = []
 
     colors = [
@@ -80,9 +79,8 @@ def generate_chart_config(chart_config, grouped_data, all_timestamps, interval_m
             chart_config["options"]["scales"]["y"]["grid"] = {
         "color": "rgba(255, 255, 255, 0.2)"
     }
-
+    
     return json.dumps(chart_config)
-
 
 
 def fill_llm_chart_data(chart_config, sensor_data, sensor_label=None, interval_minutes=5):
