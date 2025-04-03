@@ -35,14 +35,16 @@ def extract_sensor(query_text):
     
     sensor_keywords_map = {}
     
+    detected_sensors = []
+
     for sensor in sensor_types:
         sensor_keywords_map[sensor] = generate_keywords(sensor)
     
     for sensor, keywords in sensor_keywords_map.items():
         if any(keyword in query_text for keyword in keywords):
+            detected_sensors.append(sensor)
             if "distribution" in query_text or "pie chart" in query_text:
                 print(f"INFO: Detected request for pie chart for sensor: {sensor}")
-            return sensor
     
     if "distribution" in query_text or "sensor types" in query_text or "pie chart" in query_text:
         print("INFO: Detected request for a pie chart of all sensors. Fetching sensor types from DB.")
@@ -50,5 +52,8 @@ def extract_sensor(query_text):
             print("ERROR: No sensor types found in the database.")
             return {"error": "No sensor types found."}
         return sensor_types  
+    
+    if not detected_sensors:
+        return {"error": "Unknown sensor type."}
 
-    return {"error": "Unknown sensor type."}
+    return detected_sensors
