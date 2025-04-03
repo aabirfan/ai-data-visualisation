@@ -3,20 +3,19 @@ from models.embeddings import get_embedding, generate_bson_vector, vector_collec
 # EMBED AND ADD QUERY TO VECTOR DB
 def embed_query():
     queries = [
-        [
-            "Show me the OBJECT values on X at TIME_OF_DAY",
-            {
-                "timestamp": {
-                    "$gte": "X TIME_OF_DAY START",
-                    "$lte": "X TIME_OF_DAY END"
-                },
-                "metadata.name": "OBJECT",
-                "aggregation": "timeseries",
-                "group_by": "minute",
-                "field": "VALUE"
+    [
+        "Show me the OBJECT 1 and OBJECT 2 values on X",
+        {
+            "timestamp": {
+                "$gte": "X TIME_OF_DAY START",
+                "$lte": "X TIME_OF_DAY END"
+            },
+            "metadata.name": {
+                "$in": ["OBJECT 1", "OBJECT 2"]
             }
-        ]
+        }
     ]
+]
 
     # Extract natural queries
     natural_queries = [query[0] for query in queries]

@@ -90,7 +90,7 @@ def extract_variables(user_query):
         print(f"Matched Sensors: {matched_sensors}")
     else:
         matched_sensors = [matched_sensors]
-        print(f"Matched Sensor: {matched_sensors[0]}")
+        print(f"Matched Sensor: {matched_sensors}")
 
     print(f"\n Dates: {mongo_dates}")
     print(f"\n TOD: {hour_start, hour_end} \n")
