@@ -2,6 +2,7 @@ import json
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from collections import defaultdict 
+from models.llm_chart import generate_llm_chart_config
 
 def generate_time_grid(start_time, end_time, interval_minutes=5):
     if not isinstance(interval_minutes, int):
@@ -131,12 +132,9 @@ def fill_llm_chart_data(chart_config, sensor_data, sensor_label=None, interval_m
 
 
 
-def fill_pie_chart_data(sensor_data):
+def fill_pie_chart_data(sensor_data, user_query="Distribution of sensor values", query_results=None):
     if not sensor_data or not isinstance(sensor_data, list):
-        print("ERROR: Invalid sensor data for pie chart.")
         return None
-
-    print("INFO: Processing pie chart data.")
 
     labels = []
     data_values = []
@@ -145,7 +143,6 @@ def fill_pie_chart_data(sensor_data):
         _id = entry.get("_id", "Unknown")
         count = entry.get("count", 0)
 
-        # Normalize the _id to a string label
         if isinstance(_id, dict):
             label = ", ".join([f"{k}: {v}" for k, v in _id.items()])
         elif _id is None:
@@ -162,37 +159,47 @@ def fill_pie_chart_data(sensor_data):
         "rgb(0, 243, 255)", "rgb(128, 128, 128)", "rgb(255, 105, 180)",
         "rgb(60, 179, 113)", "rgb(255, 140, 0)", "rgb(100, 149, 237)"
     ]
-
     background_colors = [colors[i % len(colors)] for i in range(len(labels))]
 
-    chart_config = {
-        "type": "pie",
-        "data": {
-            "labels": labels,
-            "datasets": [
-                {
-                    "label": "Sensor Value Distribution",
-                    "data": data_values,
-                    "backgroundColor": background_colors,
-                    "borderColor": background_colors,
-                    "borderWidth": 1
-                }
-            ]
-        },
-        "options": {
-            "plugins": {
-                "title": {
-                    "display": True,
-                    "text": "Value Distribution"
-                },
-                "legend": {
-                    "display": True,
-                    "labels": {
-                        "color": "white"
-                    }
-                }
-            }
-        }
-    }
+    class Summary:
+        def __init__(self, length, avg):
+            self.length = length
+            self.avg = avg
+            self.median = 0
+            self.std_dev = 0
+            self.min = 0
+            self.max = 0
+
+    summary_stats = Summary(
+        length=len(data_values),
+        avg=sum(data_values) / len(data_values) if data_values else 0
+    )
+
+    sensor_names = list(set(
+        entry["metadata"]["name"]
+        for entry in (query_results or [])
+        if "metadata" in entry and "name" in entry["metadata"]
+    ))
+
+    sensor_context = ", ".join(sensor_names) if sensor_names else "Sensor"
+
+    llm_result = generate_llm_chart_config(
+        sensor_name=sensor_context,
+        num_data_points=len(data_values),
+        query=user_query,
+        summary_stats=summary_stats
+    )
+
+    chart_config = llm_result["config"]
+    chart_config["type"] = "pie"
+
+    if chart_config["type"] == "pie":
+        chart_config["data"]["datasets"][0]["label"] = user_query
+
+    chart_config["type"] = "pie"
+    chart_config["data"]["labels"] = labels
+    chart_config["data"]["datasets"][0]["data"] = data_values
+    chart_config["data"]["datasets"][0]["backgroundColor"] = background_colors
+    chart_config["data"]["datasets"][0]["borderColor"] = background_colors
 
     return json.dumps(chart_config, indent=2)
