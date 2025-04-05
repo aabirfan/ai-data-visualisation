@@ -46,8 +46,9 @@ def get_prompt_history(asset_id):
     
 def clear_prompt_history(asset_id: str):
     try:
-        collection.delete_many({"asset_id": asset_id}) 
+        collection.delete_many({"asset_id": str(asset_id)})
         return 
     except PyMongoError as e:
         raise HTTPException(status_code=500)
+
 

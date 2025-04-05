@@ -35,15 +35,23 @@ export default function PromptHistory({ isOpen, onClose, onSubmit, selectedAsset
     }
   };
 
-  const handleClearHistory = () => {
-    fetch("http://localhost:8000/api/clear-prompt-history/", { method: "DELETE" })
-      .then((res) => res.json())
-      .then(() => {
-        setPromptHistory([]);
-      })
-      .catch((error) => console.error(error));
+  const handleClearHistory = async () => {
+    try {
+      const res = await fetch("http://localhost:8000/api/clear-prompt-history/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ asset_id: selectedAsset }) 
+      });
+  
+      if (!res.ok) {
+        throw new Error("Failed to clear history");
+      }
+      setPromptHistory([]); 
+    } catch (error) {
+      console.error("Clear history error:", error);
+    }
   };
-
+  
   useEffect(() => {
     if (isOpen) {
       fetchPromptHistory(selectedAsset);

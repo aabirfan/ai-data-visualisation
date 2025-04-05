@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 import re
+from models.database import collection as Telemetry
 #Extracts single date
 def extract_date(query):
     date_patterns = [
@@ -151,3 +152,19 @@ def convert_date_format(date_string, input_format, output_format="%Y-%m-%d"):
         return datetime.strptime(date_string, input_format).strftime(output_format)
     except ValueError:
         return None
+    
+def get_date_range(asset_id: str = None):
+    query = {}
+    if asset_id:
+        query["metadata.asset_id"] = asset_id
+
+    oldest_doc = Telemetry.find(query).sort("timestamp", 1).limit(1)
+    newest_doc = Telemetry.find(query).sort("timestamp", -1).limit(1)
+
+    oldest = list(oldest_doc)
+    newest = list(newest_doc)
+
+    if not oldest or not newest:
+        return None, None
+
+    return oldest[0]["timestamp"].date(), newest[0]["timestamp"].date()

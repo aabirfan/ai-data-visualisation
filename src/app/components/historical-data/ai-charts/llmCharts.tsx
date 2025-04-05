@@ -5,6 +5,8 @@ import { Chart } from 'chart.js/auto';
 import { handleChartRequest } from "../../../utils/chartUtils";
 import {Dialog} from "@/app/modals/dialog_modal";
 import { FaArrowRight } from "react-icons/fa"; 
+import PromptSuggestions from "./promptSuggestions";
+
 
 import 'chartjs-adapter-moment';
 import "../../../styles/llmCharts.css";
@@ -62,7 +64,7 @@ function LLMCharts({ loading, setLoading, selectedAsset}: llmChartProps) {
   const [isModalOpen, setModalOpen] = useState(false)
   const [chartTitle, setChartTitle] = useState<string>("");
   const [chartDescription, setChartDescription] = useState<string>("");
-  
+  const [showSuggestions, setShowSuggestions] = useState(true);
 
 
   const openModal = () => setModalOpen(true);
@@ -80,16 +82,26 @@ function LLMCharts({ loading, setLoading, selectedAsset}: llmChartProps) {
   
   return (
     <div className="llm-container">
-      <ChartInput 
+
+    <ChartInput 
     onSubmit={(query) => { 
+    setShowSuggestions(false);
     savePromptHistory(query);
     handleChartRequest(query, selectedAsset, setLoading, setResponse, setChartData, setChartOptions, setChartType, setChartTitle);
   }}
   selectedAsset={selectedAsset}
   loading={loading}
 />
-
-
+{showSuggestions && (
+<PromptSuggestions
+  selectedAsset={selectedAsset}
+  onSubmit={(query) => {
+    setShowSuggestions(false); 
+    savePromptHistory(query);
+    handleChartRequest(query, selectedAsset, setLoading, setResponse, setChartData, setChartOptions, setChartType, setChartTitle);
+  }}
+/>
+)}
       <Dialog isOpen={isModalOpen} onClose={closeModal}>
             <div className="modal-title">
               <h2>Save Chart...</h2>
