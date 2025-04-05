@@ -8,7 +8,7 @@ interface PromptHistoryProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (query: string) => void;
-  SelectedAsset: string
+  selectedAsset: string
 }
 
 export default function PromptHistory({ isOpen, onClose, onSubmit, selectedAsset}: PromptHistoryProps) {

@@ -83,7 +83,7 @@ function LLMCharts({ loading, setLoading, selectedAsset}: llmChartProps) {
       <ChartInput 
     onSubmit={(query) => { 
     savePromptHistory(query);
-    handleChartRequest(query, selectedAsset, setLoading, setResponse, setChartData, setChartOptions, setChartType);
+    handleChartRequest(query, selectedAsset, setLoading, setResponse, setChartData, setChartOptions, setChartType, setChartTitle);
   }}
   selectedAsset={selectedAsset}
   loading={loading}
