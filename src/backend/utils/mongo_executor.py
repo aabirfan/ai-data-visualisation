@@ -87,6 +87,10 @@ def execute_query(query, asset_id):
         if "name" in query["metadata"]:
             query["metadata.name"] = query["metadata"]["name"]
             del query["metadata"]
+        elif "$in" in query["metadata"]:
+            query["metadata.name"] = query["metadata"]
+            del query["metadata"]
+
 
     sort_field = query.pop("sort", None) if isinstance(query, dict) else None
 

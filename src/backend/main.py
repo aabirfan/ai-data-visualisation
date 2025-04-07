@@ -21,6 +21,7 @@ from models.chart_archiving import get_chart_data
 from models.chart_archiving import remove_saved_data
 
 from models.prompt_history import add_prompt_history, get_prompt_history, clear_prompt_history
+from models.prompt_suggestions import get_suggested_prompts
 
 from utils.fetch_assets import fetch_assets_from_db
 
@@ -124,7 +125,7 @@ async def fetch_prompt_history(data: asset_req):
     history = get_prompt_history(data.asset_id)
     return JSONResponse(content={"data": history}, media_type="application/json")  
 
-@app.delete("/api/clear-prompt-history/")
+@app.post("/api/clear-prompt-history/")
 async def delete_prompt_history(data: asset_req):
     return clear_prompt_history(data.asset_id)
 
@@ -133,6 +134,11 @@ async def get_assets():
     assets = fetch_assets_from_db()
     print(assets)
     return JSONResponse(content={"data": assets})
+
+@app.get("/api/prompt-suggestions/")
+async def suggest_prompts(asset_id: str):
+    suggestions = get_suggested_prompts(asset_id)
+    return JSONResponse(content={"suggestions": suggestions})
 
 
 
