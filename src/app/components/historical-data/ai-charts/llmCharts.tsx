@@ -4,21 +4,19 @@ import { saveGraph } from "../../../utils/archive_graph";
 import { Chart } from 'chart.js/auto';
 import { handleChartRequest } from "../../../utils/chartUtils";
 import {Dialog} from "@/app/modals/dialog_modal";
-import { FaArrowRight } from "react-icons/fa"; 
 import PromptSuggestions from "./promptSuggestions";
-
 
 import 'chartjs-adapter-moment';
 import "../../../styles/llmCharts.css";
 import "../../../styles/charts.css";
 import "../../../styles/modals.css";
 
-
-
 interface ChartJsCodeRendererProps {
   chartData: any;
   chartOptions: any;
   chartType: any;
+  textResponse?: string | null; 
+
 }
 
 interface llmChartProps {
@@ -27,26 +25,58 @@ interface llmChartProps {
   selectedAsset: string; 
 }
 
-const ChartJs: React.FC<ChartJsCodeRendererProps> = ({ chartData, chartOptions, chartType }) => {
+
+const ChartJs: React.FC<ChartJsCodeRendererProps> = ({
+  chartData,
+  chartOptions,
+  chartType,
+  textResponse,
+  userQuery,
+}) => {
   const chartRef = useRef<HTMLCanvasElement | null>(null);
   const chartInstance = useRef<Chart | null>(null);
 
   useEffect(() => {
-    if (chartData && chartOptions && chartRef.current) {
+    if (chartData && chartOptions && chartType && chartRef.current) {
       if (chartInstance.current) {
         chartInstance.current.destroy();
       }
 
       chartInstance.current = new Chart(chartRef.current, {
         type: chartType,
-        options: chartOptions,
         data: chartData,
+        options: chartOptions,
       });
     }
+
+    return () => {
+      if (chartInstance.current) {
+        chartInstance.current.destroy();
+      }
+    };
   }, [chartData, chartOptions, chartType]);
 
-  if (!chartData) {
-    return <p>Loading chart...</p>;
+  if (textResponse) {
+    return (
+      <div className="chat-container">
+        <div className="query-box">
+          <p>{userQuery}</p>
+        </div>
+          <div className="text-response">
+          <img className="response-img" src="illi_blink.png" alt="bot" />
+          <p>{textResponse}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!chartData || !chartOptions || !chartType) {
+    return (
+      <div>
+        <img className="response-img" src="illi_blink.png" alt="bot" />
+        <p>Loading chart</p>
+      </div>
+    );
   }
 
   return (
@@ -55,6 +85,8 @@ const ChartJs: React.FC<ChartJsCodeRendererProps> = ({ chartData, chartOptions, 
     </div>
   );
 };
+
+export default ChartJs;
 
 function LLMCharts({ loading, setLoading, selectedAsset}: llmChartProps) {
   const [response, setResponse] = useState<any | null>(null);
@@ -65,6 +97,8 @@ function LLMCharts({ loading, setLoading, selectedAsset}: llmChartProps) {
   const [chartTitle, setChartTitle] = useState<string>("");
   const [chartDescription, setChartDescription] = useState<string>("");
   const [showSuggestions, setShowSuggestions] = useState(true);
+  const [userQuery, setUserQuery] = useState<string>(""); 
+
 
 
   const openModal = () => setModalOpen(true);
@@ -85,6 +119,7 @@ function LLMCharts({ loading, setLoading, selectedAsset}: llmChartProps) {
 
     <ChartInput 
     onSubmit={(query) => { 
+    setUserQuery(query);
     setShowSuggestions(false);
     savePromptHistory(query);
     handleChartRequest(query, selectedAsset, setLoading, setResponse, setChartData, setChartOptions, setChartType, setChartTitle);
@@ -138,7 +173,8 @@ function LLMCharts({ loading, setLoading, selectedAsset}: llmChartProps) {
           </Dialog> 
 
       <div className="llm-content">
-        {loading && <p className="loading">Fetching data...</p>}
+        {loading && <p className="loading">
+          Fetching data...</p>}
         {response ? (
           response.error ? (
             <div className="error-message">
@@ -158,7 +194,10 @@ function LLMCharts({ loading, setLoading, selectedAsset}: llmChartProps) {
             </div>
           ) : (
             <>
-              <ChartJs chartData={chartData} chartOptions={chartOptions} chartType={chartType} />
+              <ChartJs chartData={chartData} chartOptions={chartOptions} chartType={chartType} textResponse={response?.type === "text" ? response.content : null} 
+              userQuery={userQuery} 
+              
+ />
 
               <div className="save-btn">
                 <button onClick={() => setModalOpen(true)}>Save chart...</button>

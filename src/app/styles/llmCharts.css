@@ -167,4 +167,58 @@
     scrollbar-width: none; 
 }
 
+.chat-container {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    width: 60%;
+    margin-bottom: 150px;
+}
 
+.query-box {
+    display: flex;
+    justify-content: flex-end; 
+    gap: 10px;
+}
+
+.query-box p {
+    padding: 10px;
+    border-radius: 10px;
+    max-width: 20rem;
+    justify-content: center;
+    align-items: center;
+    border: solid white 1.5px;
+}
+
+.text-response {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 5px;
+    width: 20rem;
+}
+
+.response-img {
+    width: 3.5rem;
+    height: auto;
+}
+
+.text-response p {
+    padding: 10px;
+    border-radius: 10px;
+    max-width: 18rem;
+    word-wrap: break-word;
+    text-align: left;
+    opacity: 0;
+    animation: typing 0.7s steps(100, end) forwards;
+    white-space: pre-wrap;
+}
+
+@keyframes typing {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}

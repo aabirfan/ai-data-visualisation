@@ -4,16 +4,88 @@ from models.embeddings import get_embedding, generate_bson_vector, vector_collec
 def embed_query():
     queries = [
     [
-        "Show me the OBJECT 1 and OBJECT 2 values on X",
+        "What was the OBJECT range on X",
         {
             "timestamp": {
                 "$gte": "X TIME_OF_DAY START",
                 "$lte": "X TIME_OF_DAY END"
             },
             "metadata.name": {
-                "$in": ["OBJECT 1", "OBJECT 2"]
-            }
-        }
+                "$in": "OBJECT"
+            },
+        },
+        None,
+        True
+    ],
+    [
+        "What was the OBJECT count on X",
+        {
+            "timestamp": {
+                "$gte": "X TIME_OF_DAY START",
+                "$lte": "X TIME_OF_DAY END"
+            },
+            "metadata.name": {
+                "$in": "OBJECT"
+            },
+        },
+        None,
+        True
+    ],
+    [
+        "What was the OBJECT mean on X",
+        {
+            "timestamp": {
+                "$gte": "X TIME_OF_DAY START",
+                "$lte": "X TIME_OF_DAY END"
+            },
+            "metadata.name": {
+                "$in": "OBJECT"
+            },
+        },
+        None,
+        True
+    ],
+    [
+        "What was the OBJECT median on X",
+        {
+            "timestamp": {
+                "$gte": "X TIME_OF_DAY START",
+                "$lte": "X TIME_OF_DAY END"
+            },
+            "metadata.name": {
+                "$in": "OBJECT"
+            },
+        },
+        None,
+        True
+    ],
+    [
+        "What was the OBJECT std dev on X",
+        {
+            "timestamp": {
+                "$gte": "X TIME_OF_DAY START",
+                "$lte": "X TIME_OF_DAY END"
+            },
+            "metadata.name": {
+                "$in": "OBJECT"
+            },
+        },
+        None,
+        True
+    ],
+    [
+        "What was the OBJECT range on X",
+        {
+            "timestamp": {
+                "$gte": "X TIME_OF_DAY START",
+                "$lte": "X TIME_OF_DAY END"
+            },
+            "metadata.name": {
+                "$in": "OBJECT"
+            },
+        },
+        None,
+        True
     ]
 ]
 
@@ -30,9 +102,10 @@ def embed_query():
     docs = []
     for (bson_f32_emb, query) in zip(bson_float32_embeddings, queries):
         doc = {
-            "natural_query": query[0],  # The natural query text
-            "mongo_query": query[1],    # The MongoDB query as an object
-            "BSON-Float32-Embedding": bson_f32_emb,  # The BSON vector
+            "natural_query": query[0],  
+            "mongo_query": query[1],    
+            "BSON-Float32-Embedding": bson_f32_emb,
+            "isText": query[3]
         }
         docs.append(doc)
     
