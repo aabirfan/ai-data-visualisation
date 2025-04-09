@@ -1,5 +1,3 @@
-import { error } from "console";
-
 export const handleChartRequest = async (
   query: string | number[],
   selectedAsset: string,
@@ -36,16 +34,24 @@ export const handleChartRequest = async (
     if (!res.ok) {
       setResponse({ error: "Unexpected error occurred." });
     } else {
-      setResponse(data);
-
-      if (data.chartData && data.chartOptions && data.chartType) {
+      if (data.text) {
+        setResponse({ type: "text", content: data.text });
+        setChartData(null);
+        setChartOptions(null);
+        setChartType(null);
+        if (setChartTitle) setChartTitle("Summary");
+      } else if (data.chartData && data.chartOptions && data.chartType) {
         setChartData(data.chartData);
         setChartOptions(data.chartOptions);
         setChartType(data.chartType);
-      }
-      
-      if (setChartTitle && data.llmTitle) {
-        setChartTitle(data.llmTitle);
+        setResponse({ type: "chart", ...data });
+
+        if (setChartTitle && data.llmTitle) {
+          setChartTitle(data.llmTitle);
+        }
+      } else {
+        // Unknown structure
+        setResponse({ error: "Unexpected data format from server." });
       }
     }
   } catch (error) {

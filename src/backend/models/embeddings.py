@@ -5,6 +5,7 @@ import re
 from .database import vector_collection  
 from .database import collection as Telemetry
 from utils.chart_utils import generate_chart_from_query_results
+from models.llm_chart import generate_text_from_query_results
 from utils.date_parser import extract_all_dates
 from utils.mongo_executor import execute_queries
 from utils.sensor_parser import extract_sensor
@@ -31,6 +32,7 @@ def create_docs_with_bson_vector_embeddings(bson_float32, data):
             "natural_query": query[0],  
             "mongo_query": query[1],    
             "BSON-Float32-Embedding": bson_f32_emb,
+            "isText": query[3]
         }
         docs.append(doc)
     return docs
@@ -57,6 +59,7 @@ def vector_search(user_query):
                 "_id": 0,
                 "natural_query": 1,
                 "mongo_query": 1,
+                "isText": 1,
                 "score": { "$meta": "vectorSearchScore" }
             }
         }
@@ -66,7 +69,7 @@ def vector_search(user_query):
 
     if results:
         print(f"Matched Query: {results[0]['natural_query']}")
-        return results[0]["mongo_query"], results[0]['natural_query']
+        return results[0]["mongo_query"], results[0]['natural_query'], results[0]['isText']
 
     print("No match.")
     return None, None
@@ -74,13 +77,14 @@ def vector_search(user_query):
 ######### EXTRACT VARIABLES 
 
 def extract_variables(user_query):
-    extracted_dates, mongo_dates,  hour_start, hour_end, error_message = extract_all_dates(user_query)
+
+    extracted_dates, mongo_dates, hour_start, hour_end, error_message = extract_all_dates(user_query)
+
+    matched_sensors = extract_sensor(user_query)
     
     if error_message:
         print(error_message)
         return None, None, error_message
-
-    matched_sensors = extract_sensor(user_query)
     
     if isinstance(matched_sensors, dict) and "error" in matched_sensors:
         print(matched_sensors["error"])
@@ -153,11 +157,11 @@ def process_pipeline_2_queries(filled_queries):
 ######### PIPELINE 2 RUN
 
 def process_user_query(user_query, asset_id):
-    query_template, matched_query = vector_search(user_query)
+    query_template, matched_query, isText = vector_search(user_query)
 
     if not query_template:
         return {"error": "No matching query template found."}
-
+    
     object_name, dates, hour_start, hour_end, error = extract_variables(user_query)
 
     if error or object_name is None:
@@ -170,4 +174,12 @@ def process_user_query(user_query, asset_id):
 
     raw_results = execute_queries(final_queries, asset_id)
 
-    return generate_chart_from_query_results(user_query, raw_results)
+    if isText is True:
+        print("Text answer needed")
+        return generate_text_from_query_results(user_query, raw_results, object_name)
+    else:
+        return generate_chart_from_query_results(user_query, raw_results)
+
+   
+
+   
