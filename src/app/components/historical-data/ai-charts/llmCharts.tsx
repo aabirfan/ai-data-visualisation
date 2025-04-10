@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import ChartInput from "./chartInput";
+import {sanitizeInput, ChartInput} from "./chartInput";
 import { saveGraph } from "../../../utils/archive_graph";
 import { Chart } from 'chart.js/auto';
 import { handleChartRequest } from "../../../utils/chartUtils";
@@ -99,6 +99,14 @@ function LLMCharts({ loading, setLoading, selectedAsset}: llmChartProps) {
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [userQuery, setUserQuery] = useState<string>(""); 
 
+  const handleTitleSave = (savedChartTitle: string) => {
+    setChartTitle(sanitizeInput(savedChartTitle));
+  }
+  
+  const handleDescSave = (savedChartDesc: string) => {
+    setChartDescription(sanitizeInput(savedChartDesc));
+  }
+
 
 
   const openModal = () => setModalOpen(true);
@@ -148,7 +156,8 @@ function LLMCharts({ loading, setLoading, selectedAsset}: llmChartProps) {
                 placeholder="Enter title..."
                 className="save-input"
                 value={chartTitle}
-                onChange={(e) => setChartTitle(e.target.value)}
+                onChange={(e) => handleTitleSave(e.target.value)}
+                maxLength={60}
               />
               <h3>Description:</h3>
               <input
@@ -156,7 +165,8 @@ function LLMCharts({ loading, setLoading, selectedAsset}: llmChartProps) {
                 placeholder="Enter description..."
                 className="save-input"
                 value={chartDescription}
-                onChange={(e) => setChartDescription(e.target.value)}
+                onChange={(e) => handleDescSave(e.target.value)}
+                maxLength={60}
               />
             </form>
 

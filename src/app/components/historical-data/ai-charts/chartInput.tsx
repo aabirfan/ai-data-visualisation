@@ -14,6 +14,13 @@ interface ChartInputProps {
   selectedAsset: string;
 }
 
+const sanitizeInput = (input: string) => {
+  const trimmed = input.trim();
+  // Only allows normal characters (i.e not < >). Mitigates Script Injections. 
+  const pattern = /^[\w\s\-.,?!@#%&()æøåÆØÅ]+$/;
+  return pattern.test(trimmed) ? trimmed : "";
+};
+
 export default function ChartInput({ onSubmit, loading, selectedAsset }: ChartInputProps) {
   const [query, setQuery] = useState("");
   const [isModalOpen, setModalOpen] = useState(false);
@@ -28,6 +35,12 @@ export default function ChartInput({ onSubmit, loading, selectedAsset }: ChartIn
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>, asset_id: string) => {
     e.preventDefault();
 
+    const cleanQuery = sanitizeInput(query);
+    if (!cleanQuery || !asset_id) {
+      console.error("Invalid input");
+      return;
+    }
+  
     if (!query.trim() || !asset_id) {
       console.error("Missing query or asset_id");
       return;
@@ -78,7 +91,8 @@ export default function ChartInput({ onSubmit, loading, selectedAsset }: ChartIn
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="chart-input"
-        />
+          maxLength={85}
+          />
         <button type="submit" className="chart-send-button">
           {loading ? <div className="spinner"></div> : <FaArrowRight className="chart-send-icon" />}
         </button>
@@ -105,3 +119,5 @@ export default function ChartInput({ onSubmit, loading, selectedAsset }: ChartIn
     </div>
   );
 }
+
+export {sanitizeInput, ChartInput}

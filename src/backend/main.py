@@ -8,6 +8,12 @@ from fastapi import HTTPException
 import json
 from fastapi.responses import JSONResponse
 
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from fastapi import Request
+
+
+
 ## FUNCTION IMPORTS
 
 from utils.query_processor import process_sensor_query
@@ -28,6 +34,9 @@ from utils.fetch_assets import fetch_assets_from_db
 load_dotenv("../../.env.local")
 
 app = FastAPI()
+
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
 
 app.add_middleware(
     CORSMiddleware,
@@ -66,7 +75,8 @@ def read_root():
     return {"Hello": "World test"}
 
 @app.post("/query")
-async def process_query(query_request: PromptRequest):
+@limiter.limit("10/minute")
+async def process_query(query_request: PromptRequest, request: Request):
     print(f"Received query_request: {query_request}")
     print(f"Asset ID: {query_request.asset_id}")
     #Temporary, the prompt has to start with manual to receive a manual chart
@@ -90,7 +100,8 @@ async def process_query(query_request: PromptRequest):
 
 
 @app.post("/save_chart")
-async def process_saving_chart(data: ChartData):
+@limiter.limit("20/minute")
+async def process_saving_chart(data: ChartData, request: Request):
     try:
         # Convert the ChartData to a dictionary and then to a JSON string
         chart_dict = data.dict()  # Convert the Pydantic model to a dictionary
@@ -105,38 +116,45 @@ async def process_saving_chart(data: ChartData):
     
 
 @app.post("/get_chart_data")
-async def process_getting_saved_charts(data: asset_req):
+@limiter.limit("20/minute")
+async def process_getting_saved_charts(data: asset_req, request: Request):
    list = get_chart_data(data.asset_id)
    return JSONResponse(content={"data": list})  
 
 @app.post("/remove_saved_chart")
-async def remove_saved_chart(data: removeData):
+@limiter.limit("20/minute")
+async def remove_saved_chart(data: removeData, request: Request):
     post_id = data.timestamp
     remove_saved_data(post_id)
     return JSONResponse(content={"data": post_id})   
 
 @app.post("/api/save-prompt/")
-async def save_prompt(data: PromptRequest):
+@limiter.limit("20/minute")
+async def save_prompt(data: PromptRequest, request: Request):
     add_prompt_history(data.query, data.asset_id)  
     return JSONResponse(content={"message": "Prompts saved"})
 
 @app.post("/api/get-prompt-history/")
-async def fetch_prompt_history(data: asset_req):
+@limiter.limit("20/minute")
+async def fetch_prompt_history(data: asset_req, request: Request):
     history = get_prompt_history(data.asset_id)
     return JSONResponse(content={"data": history}, media_type="application/json")  
 
 @app.post("/api/clear-prompt-history/")
-async def delete_prompt_history(data: asset_req):
+@limiter.limit("20/minute")
+async def delete_prompt_history(data: asset_req, request: Request):
     return clear_prompt_history(data.asset_id)
 
 @app.get("/assets")
-async def get_assets():
+@limiter.limit("3/minute")
+async def get_assets(request: Request):
     assets = fetch_assets_from_db()
     print(assets)
     return JSONResponse(content={"data": assets})
 
 @app.get("/api/prompt-suggestions/")
-async def suggest_prompts(asset_id: str):
+@limiter.limit("20/minute")
+async def suggest_prompts(asset_id: str, request: Request):
     suggestions = get_suggested_prompts(asset_id)
     return JSONResponse(content={"suggestions": suggestions})
 
