@@ -143,7 +143,6 @@ model2 = genai.GenerativeModel(
         "You will recieve a datapoint and what the user query was. Then you will give a SHORT answer to the user where you present that datapoint"
         "Do not include any explanations, extra text, or markdown. Do not add linebreaks"
         "Use placeholders (`[]`) for labels and data to be filled dynamically later."
-        "Be fun. At the end, give a pun about digital twins or the sensor name / data"
         "Give the date back in a natural manner, i.e 28 September 2022"
     )
 )
