@@ -16,7 +16,7 @@ interface ChartJsCodeRendererProps {
   chartOptions: any;
   chartType: any;
   textResponse?: string | null; 
-
+  userQuery: string;
 }
 
 interface llmChartProps {
