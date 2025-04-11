@@ -8,6 +8,7 @@ interface Props {
 
 export default function PromptSuggestions({ selectedAsset, onSubmit }: Props) {
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
   const hasFetched = useRef(false);
   
   useEffect(() => {
@@ -16,10 +17,13 @@ export default function PromptSuggestions({ selectedAsset, onSubmit }: Props) {
       hasFetched.current = true;
 
       try {
+        setLoading(true);
         const res = await fetch(`http://localhost:8000/api/prompt-suggestions/?asset_id=${selectedAsset}`);
         const data = await res.json();
         setSuggestions(data.suggestions);
       } catch (err) {
+      } finally {
+        setLoading(false);
       }
     }
 
@@ -41,15 +45,19 @@ export default function PromptSuggestions({ selectedAsset, onSubmit }: Props) {
 
   return (
     <div className="suggestion-container">
-      {suggestions.map((suggestion, index) => (
-        <button
-          key={index}
-          className="suggestion-pill"
-          onClick={() => handleSuggestionClick(suggestion)}
-        >
-          {suggestion}
-        </button>
-      ))}
+      {loading ? (
+        <p className="loading">Loading suggestions...</p>
+      ) : (
+        suggestions.map((suggestion, index) => (
+          <button
+            key={index}
+            className="suggestion-pill"
+            onClick={() => handleSuggestionClick(suggestion)}
+          >
+            {suggestion}
+          </button>
+        ))
+      )}
     </div>
   );
 }
