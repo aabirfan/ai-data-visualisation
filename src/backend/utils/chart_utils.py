@@ -4,7 +4,7 @@ from models.llm_chart import generate_llm_chart_config
 from models.fill_chart import fill_pie_chart_data, fill_llm_chart_data
 
 
-def generate_chart_from_query_results(user_query, query_results):
+def generate_chart_from_query_results(user_query, query_results, chartType):
     if not query_results or not isinstance(query_results, list):
         return {"error": "No data retrieved from MongoDB."}
     
@@ -33,14 +33,15 @@ def generate_chart_from_query_results(user_query, query_results):
 
     sensor_context = (
     ", ".join(sensor_names)
-    if sensor_names else "Unknown Sensor"
-)
+    if sensor_names else "Unknown Sensor"    
+    )
 
     llm_result = generate_llm_chart_config(
         sensor_name=sensor_context,
         num_data_points=data_summary.length,
         query=user_query,
-        summary_stats=data_summary
+        summary_stats=data_summary,
+        providedChartType=chartType
     )
 
     if not llm_result:
@@ -48,7 +49,6 @@ def generate_chart_from_query_results(user_query, query_results):
 
     chart_type = llm_result["chart_type"]
     chart_config = llm_result["config"]
-
 
     if chart_type == "pie":
         filled_config = fill_pie_chart_data(query_results, user_query, query_results)

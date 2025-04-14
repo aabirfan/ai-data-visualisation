@@ -32,7 +32,8 @@ def create_docs_with_bson_vector_embeddings(bson_float32, data):
             "natural_query": query[0],  
             "mongo_query": query[1],    
             "BSON-Float32-Embedding": bson_f32_emb,
-            "isText": query[3]
+            "isText": query[3],
+            "chartType": query[4]
         }
         docs.append(doc)
     return docs
@@ -60,6 +61,7 @@ def vector_search(user_query):
                 "natural_query": 1,
                 "mongo_query": 1,
                 "isText": 1,
+                "chartType": 1,
                 "score": { "$meta": "vectorSearchScore" }
             }
         }
@@ -69,7 +71,7 @@ def vector_search(user_query):
 
     if results:
         print(f"Matched Query: {results[0]['natural_query']}")
-        return results[0]["mongo_query"], results[0]['natural_query'], results[0]['isText']
+        return results[0]["mongo_query"], results[0]['natural_query'], results[0]['isText'], results[0]['chartType']
 
     print("No match.")
     return None, None
@@ -157,7 +159,9 @@ def process_pipeline_2_queries(filled_queries):
 ######### PIPELINE 2 RUN
 
 def process_user_query(user_query, asset_id):
-    query_template, matched_query, isText = vector_search(user_query)
+    query_template, matched_query, isText, chartType = vector_search(user_query)
+
+    print("Chart Type:", chartType)
 
     if not query_template:
         return {"error": "No matching query template found."}
@@ -178,7 +182,7 @@ def process_user_query(user_query, asset_id):
         print("Text answer needed")
         return generate_text_from_query_results(user_query, raw_results, object_name)
     else:
-        return generate_chart_from_query_results(user_query, raw_results)
+        return generate_chart_from_query_results(user_query, raw_results, chartType)
 
    
 

@@ -1,10 +1,40 @@
 from models.embeddings import get_embedding, generate_bson_vector, vector_collection
 
+
+"""
+VECTOR EMBEDDING TEMPLATE:
+
+"natural_query": query[0],  
+"mongo_query": query[1],    
+"BSON-Float32-Embedding": bson_f32_emb,
+"isText": query[3],
+"chartType": query[4],
+
+queries = [
+    [
+        "Vis OBJECT verdiene på X", 
+        {
+            "timestamp": {
+                "$gte": "X TIME_OF_DAY START",
+                "$lte": "X TIME_OF_DAY END"
+            },
+            "metadata.name": {
+                "$in": "OBJECT"
+            },
+        },
+        None, ## Placeholder for embedding
+        True, ## isText (For response)
+        None, ## Placeholder for chart type
+    ],
+
+"""
+
+
 # EMBED AND ADD QUERY TO VECTOR DB
 def embed_query():
     queries = [
     [
-        "What was the OBJECT range on X",
+        "Show the lost frequencies of OBJECT1 and OBJECT2 on X",
         {
             "timestamp": {
                 "$gte": "X TIME_OF_DAY START",
@@ -14,79 +44,10 @@ def embed_query():
                 "$in": "OBJECT"
             },
         },
-        None,
-        True
+        None, ## Placeholder for embedding
+        False, ## isText
+        "Scatter", ## Placeholder for chart type
     ],
-    [
-        "What was the OBJECT count on X",
-        {
-            "timestamp": {
-                "$gte": "X TIME_OF_DAY START",
-                "$lte": "X TIME_OF_DAY END"
-            },
-            "metadata.name": {
-                "$in": "OBJECT"
-            },
-        },
-        None,
-        True
-    ],
-    [
-        "What was the OBJECT mean on X",
-        {
-            "timestamp": {
-                "$gte": "X TIME_OF_DAY START",
-                "$lte": "X TIME_OF_DAY END"
-            },
-            "metadata.name": {
-                "$in": "OBJECT"
-            },
-        },
-        None,
-        True
-    ],
-    [
-        "What was the OBJECT median on X",
-        {
-            "timestamp": {
-                "$gte": "X TIME_OF_DAY START",
-                "$lte": "X TIME_OF_DAY END"
-            },
-            "metadata.name": {
-                "$in": "OBJECT"
-            },
-        },
-        None,
-        True
-    ],
-    [
-        "What was the OBJECT std dev on X",
-        {
-            "timestamp": {
-                "$gte": "X TIME_OF_DAY START",
-                "$lte": "X TIME_OF_DAY END"
-            },
-            "metadata.name": {
-                "$in": "OBJECT"
-            },
-        },
-        None,
-        True
-    ],
-    [
-        "What was the OBJECT range on X",
-        {
-            "timestamp": {
-                "$gte": "X TIME_OF_DAY START",
-                "$lte": "X TIME_OF_DAY END"
-            },
-            "metadata.name": {
-                "$in": "OBJECT"
-            },
-        },
-        None,
-        True
-    ]
 ]
 
     # Extract natural queries
@@ -105,7 +66,8 @@ def embed_query():
             "natural_query": query[0],  
             "mongo_query": query[1],    
             "BSON-Float32-Embedding": bson_f32_emb,
-            "isText": query[3]
+            "isText": query[3],
+            "chartType": query[4]
         }
         docs.append(doc)
     

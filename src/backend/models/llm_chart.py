@@ -20,7 +20,7 @@ model = genai.GenerativeModel(
     )
 )
 
-def generate_llm_chart_config(sensor_name, num_data_points, query, summary_stats):
+def generate_llm_chart_config(sensor_name, num_data_points, query, summary_stats, providedChartType):
     reference_chart = {
         "type": "line",
         "data": {
@@ -64,10 +64,14 @@ You are a Chart.js assistant. Your task is to choose the most suitable chart typ
 
 ### Your Responsibilities:
 - Select the chart type based on the user's intent and the provided data summary.
+- If you are provided with a chart type (not null / in user query), use that instead. If not, follow the users intent and generate one. 
 - Be flexible and context-aware: prioritize what *makes the most sense visually*.
 - If you're unsure, fall back to the rules below.
 - **IMPORTANT**: If the chart type is "pie", do NOT include `scales` in the configuration.
 - **IMPORTANT**: Title must be clean and descriptive. Include the full sensor name and date if available.
+
+### Chart type provided?:
+"{providedChartType}"
 
 ### User Query:
 "{query}"
@@ -119,7 +123,11 @@ Add a descriptive title in `plugins.title.text` based on:
             clean_response = clean_response[:-3]
 
         chart_config = json.loads(clean_response)
-        chart_type = chart_config.get("type", "bar")
+
+        if providedChartType is None:
+            chart_type = chart_config.get("type", "bar")
+        else:
+            chart_type = providedChartType
 
         print(f"LLM selected chart type: {chart_type}")
         return {
