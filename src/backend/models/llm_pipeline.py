@@ -14,5 +14,5 @@ def process_llm_pipeline(user_query, asset_id):
 
     query_results = execute_queries([mongo_query], asset_id)
 
-    return generate_chart_from_query_results(user_query, query_results)
+    return generate_chart_from_query_results(user_query, query_results, None)
 
