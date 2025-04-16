@@ -1,18 +1,9 @@
-import json
-from collections import defaultdict
 from datetime import datetime
-import google.generativeai as genai
 import os
 from dotenv import load_dotenv
-from datetime import datetime
-from utils.chart_utils import generate_chart_from_query_results
-
 
 load_dotenv("../../.env.local")
 my_api_key = os.getenv("GEMINI_API_KEY")
-
-import json
-from datetime import datetime
 
 #MANUAL
 def manual_chart_builder(nums, sensor_name="Unknown Sensor"):
@@ -55,9 +46,10 @@ def manual_chart_builder(nums, sensor_name="Unknown Sensor"):
             }
         }
     }
-    return json.dumps(chart_config)
 
-    
-#PIPELINE 2 & 3 CHART
-def generate_chart(user_query, raw_results):
- return generate_chart_from_query_results(user_query, raw_results)
+    return {
+    "chartData": chart_config["data"],
+    "chartOptions": chart_config["options"],
+    "chartType": chart_config["type"],
+    "llmTitle": "Test"
+    }
