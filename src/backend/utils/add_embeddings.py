@@ -33,8 +33,9 @@ queries = [
 # EMBED AND ADD QUERY TO VECTOR DB
 def embed_query():
     queries = [
+    # Minimum Value Queries (English)
     [
-        "Show the lost frequencies of OBJECT1 and OBJECT2 on X",
+        "What is the minimum value of OBJECT on X?",
         {
             "timestamp": {
                 "$gte": "X TIME_OF_DAY START",
@@ -42,11 +43,148 @@ def embed_query():
             },
             "metadata.name": {
                 "$in": "OBJECT"
-            },
+            }
         },
-        None, ## Placeholder for embedding
-        False, ## isText
-        "Scatter", ## Placeholder for chart type
+        None,
+        True,
+        None
+    ],
+    [
+        "What is the smallest value of OBJECT on X?",
+        {
+            "timestamp": {
+                "$gte": "X TIME_OF_DAY START",
+                "$lte": "X TIME_OF_DAY END"
+            },
+            "metadata.name": {
+                "$in": "OBJECT"
+            }
+        },
+        None,
+        True,
+        None
+    ],
+    [
+        "What is the lowest value of OBJECT on X?",
+        {
+            "timestamp": {
+                "$gte": "X TIME_OF_DAY START",
+                "$lte": "X TIME_OF_DAY END"
+            },
+            "metadata.name": {
+                "$in": "OBJECT"
+            }
+        },
+        None,
+        True,
+        None
+    ],
+    [
+        "Find the minimum value of OBJECT on X.",
+        {
+            "timestamp": {
+                "$gte": "X TIME_OF_DAY START",
+                "$lte": "X TIME_OF_DAY END"
+            },
+            "metadata.name": {
+                "$in": "OBJECT"
+            }
+        },
+        None,
+        True,
+        None
+    ],
+    [
+        "What is the smallest recorded value of OBJECT on X?",
+        {
+            "timestamp": {
+                "$gte": "X TIME_OF_DAY START",
+                "$lte": "X TIME_OF_DAY END"
+            },
+            "metadata.name": {
+                "$in": "OBJECT"
+            }
+        },
+        None,
+        True,
+        None
+    ],
+
+    # Maximum Value Queries (English)
+    [
+        "What is the maximum value of OBJECT on X?",
+        {
+            "timestamp": {
+                "$gte": "X TIME_OF_DAY START",
+                "$lte": "X TIME_OF_DAY END"
+            },
+            "metadata.name": {
+                "$in": "OBJECT"
+            }
+        },
+        None,
+        True,
+        None
+    ],
+    [
+        "What is the largest value of OBJECT on X?",
+        {
+            "timestamp": {
+                "$gte": "X TIME_OF_DAY START",
+                "$lte": "X TIME_OF_DAY END"
+            },
+            "metadata.name": {
+                "$in": "OBJECT"
+            }
+        },
+        None,
+        True,
+        None
+    ],
+    [
+        "What is the highest value of OBJECT on X?",
+        {
+            "timestamp": {
+                "$gte": "X TIME_OF_DAY START",
+                "$lte": "X TIME_OF_DAY END"
+            },
+            "metadata.name": {
+                "$in": "OBJECT"
+            }
+        },
+        None,
+        True,
+        None
+    ],
+    [
+        "Find the maximum value of OBJECT on X.",
+        {
+            "timestamp": {
+                "$gte": "X TIME_OF_DAY START",
+                "$lte": "X TIME_OF_DAY END"
+            },
+            "metadata.name": {
+                "$in": "OBJECT"
+            }
+        },
+        None,
+        True,
+        None
+    ],
+    [
+        "What is the largest recorded value of OBJECT on X?",
+        {
+            "timestamp": {
+                "$gte": "X TIME_OF_DAY START",
+                "$lte": "X TIME_OF_DAY END"
+            },
+            "metadata.name": {
+                "$in": "OBJECT"
+            }
+        },
+        None,
+        True,
+        None
     ],
 ]
 

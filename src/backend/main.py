@@ -16,8 +16,7 @@ from fastapi import Request
 
 ## FUNCTION IMPORTS
 
-from utils.query_processor import process_sensor_query
-
+##Pipeline Processors
 from models.chart_generation import manual_chart_builder #Pipeline 1
 from models.embeddings import process_user_query #Pipeline 2
 from models.llm_pipeline import process_llm_pipeline #Pipeline 3
@@ -28,6 +27,8 @@ from models.chart_archiving import remove_saved_data
 
 from models.prompt_history import add_prompt_history, get_prompt_history, clear_prompt_history
 from models.prompt_suggestions import get_suggested_prompts
+
+from utils.manual_query_processor import process_manual_query
 
 from utils.fetch_assets import fetch_assets_from_db
 
@@ -80,8 +81,9 @@ async def process_query(query_request: PromptRequest, request: Request):
     print(f"Received query_request: {query_request}")
     print(f"Asset ID: {query_request.asset_id}")
     #Temporary, the prompt has to start with manual to receive a manual chart
+
     if query_request.query.lower().startswith("manual"):
-        response, sensor_name  = process_sensor_query(query_request.query,  query_request.asset_id)
+        response, sensor_name  = process_manual_query(query_request.query,  query_request.asset_id)
 
         print(f"DEBUG: Sensor Name received in process_query: {sensor_name}")
 
@@ -89,7 +91,7 @@ async def process_query(query_request: PromptRequest, request: Request):
             return {"error": response["error"]}
         
         chart = manual_chart_builder(response, sensor_name)
-        return {"message": chart}
+        return chart
     
     #Temporary, the prompt has to start with rag to receive a rag chart
     if query_request.query.lower().startswith("rag"):
