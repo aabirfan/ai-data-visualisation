@@ -115,20 +115,56 @@ def fill_llm_chart_data(chart_config, sensor_data, sensor_label=None, interval_m
             time_str = dt.strftime("%H:%M")  
             date_str = dt.date().isoformat()  
 
-            if date_str not in grouped_data[sensor_name]:
-                grouped_data[sensor_name][date_str] = {}
-
             grouped_data[sensor_name][date_str][time_str] = value  
 
         if not all_timestamps:
             print("ERROR: No valid timestamps found.")
             return None
 
+        is_daily_grouped = all(dt.hour == 0 and dt.minute == 0 for dt in all_timestamps)
+
+        if is_daily_grouped:
+            chart_config["data"]["datasets"] = []
+            chart_config["data"]["labels"] = []
+
+            for sensor_name, date_data in grouped_data.items():
+                daily_points = sorted([
+                    {"x": date, "y": list(values.values())[0]}
+                    for date, values in date_data.items()
+                ], key=lambda x: x["x"])
+
+                dataset = {
+                    "label": sensor_name,
+                    "data": daily_points,
+                    "borderColor": "rgb(54, 162, 235)",
+                    "backgroundColor": "rgb(54, 162, 235)",
+                    "fill": False,
+                    "tension": 0,
+                    "pointRadius": 4,
+                    "spanGaps": True
+                }
+
+                chart_config["data"]["datasets"].append(dataset)
+                chart_config["data"]["labels"] = [pt["x"] for pt in daily_points]
+
+            chart_config.setdefault("options", {}).setdefault("scales", {})
+            chart_config["options"]["scales"]["x"] = {
+                "type": "category",
+                "labels": chart_config["data"]["labels"],
+                "ticks": {
+                    "autoSkip": False,
+                    "minRotation": 45
+                }
+            }
+
+            return json.dumps(chart_config)
+
         return generate_chart_config(chart_config, grouped_data, all_timestamps, interval_minutes)
 
     except Exception as e:
         print("ERROR while filling chart data:", str(e))
         return None
+
 
 
 
@@ -161,6 +197,18 @@ def fill_pie_chart_data(sensor_data, user_query="Distribution of sensor values",
     ]
     background_colors = [colors[i % len(colors)] for i in range(len(labels))]
 
+    try:
+        sensor_names = list(set(
+            entry.get("metadata", {}).get("name")
+            for entry in (query_results or [])
+            if isinstance(entry, dict) and "metadata" in entry and "name" in entry["metadata"]
+        ))
+        sensor_names = [name for name in sensor_names if name]
+    except Exception:
+        sensor_names = []
+
+    sensor_context = ", ".join(sensor_names) if sensor_names else "Sensor"
+
     class Summary:
         def __init__(self, length, avg):
             self.length = length
@@ -175,31 +223,28 @@ def fill_pie_chart_data(sensor_data, user_query="Distribution of sensor values",
         avg=sum(data_values) / len(data_values) if data_values else 0
     )
 
-    sensor_names = list(set(
-        entry["metadata"]["name"]
-        for entry in (query_results or [])
-        if "metadata" in entry and "name" in entry["metadata"]
-    ))
-
-    sensor_context = ", ".join(sensor_names) if sensor_names else "Sensor"
-
     llm_result = generate_llm_chart_config(
         sensor_name=sensor_context,
         num_data_points=len(data_values),
         query=user_query,
-        summary_stats=summary_stats
+        summary_stats=summary_stats,
+        providedChartType="pie"
     )
 
-    chart_config = llm_result["config"]
-    chart_config["type"] = "pie"
+    chart_config = llm_result.get("config", {})
 
-    if chart_config["type"] == "pie":
-        chart_config["data"]["datasets"][0]["label"] = user_query
+    if "data" not in chart_config:
+        chart_config["data"] = {}
+
+    if "datasets" not in chart_config["data"] or not chart_config["data"]["datasets"]:
+        chart_config["data"]["datasets"] = [{}]
 
     chart_config["type"] = "pie"
     chart_config["data"]["labels"] = labels
+    chart_config["data"]["datasets"][0]["label"] = user_query
     chart_config["data"]["datasets"][0]["data"] = data_values
     chart_config["data"]["datasets"][0]["backgroundColor"] = background_colors
     chart_config["data"]["datasets"][0]["borderColor"] = background_colors
 
     return json.dumps(chart_config, indent=2)
+

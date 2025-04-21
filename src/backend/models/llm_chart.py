@@ -11,16 +11,22 @@ genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 model = genai.GenerativeModel(
     "models/gemini-1.5-flash",
     system_instruction=(
-        "You are a bot providing only Chart.js configuration in JSON format, specifically designed for use in TypeScript. "
-        "The configuration should be a properly formatted JSON object. "
-        "Ensure the structure closely resembles the provided reference chart format. "
-        "Y-axis scale must always be dynamic, adapting to the visible data. Do not hardcode min/max values. "
-        "Use `beginAtZero: false`, and avoid using `suggestedMin` or `suggestedMax` unless they reflect the visible data range. "
-        "Include a descriptive and dynamic `plugins.title.text` based on the user's query and sensor name. "
-        "Do not include any explanations, extra text, or markdown. "
-        "Use placeholders (`[]`) for labels and data to be filled dynamically later."
-    )
+    "You are a bot providing only Chart.js configuration in JSON format, specifically designed for use in TypeScript. "
+    "The configuration should be a properly formatted JSON object. "
+    "Ensure the structure closely resembles the provided reference chart format. "
+    "Y-axis scale must always be dynamic, adapting to the visible data. Do not hardcode min/max values. "
+    "Use `beginAtZero: false`, and avoid using `suggestedMin` or `suggestedMax` unless they reflect the visible data range. "
+    "Include a descriptive and dynamic `plugins.title.text` based on the user's query and sensor name. "
+    "Do not include any explanations, extra text, or markdown. "
+    "Use placeholders (`[]`) for labels and data to be filled dynamically later. "
+
+    "### Additional Rules:\n"
+    "- If the user query involves **daily grouping**, **grouped by day**, or **per day**, use **dates (YYYY-MM-DD)** on the X-axis.\n"
+    "- In that case, set `scales.x.type` to `'category'`, and populate `labels` with date strings (e.g., '2022-09-01', '2022-09-02').\n"
+    "- Each data point should have `x: 'YYYY-MM-DD'`, `y: value`.\n"
 )
+)
+
 
 def generate_llm_chart_config(sensor_name, num_data_points, query, summary_stats, providedChartType):
     reference_chart = {
@@ -127,11 +133,12 @@ Add a descriptive title in `plugins.title.text` based on:
         chart_config = json.loads(clean_response)
 
         if providedChartType is None:
-            chart_type = chart_config.get("type", "bar")
+            chart_type = chart_config.get("type", "line")
         else:
             chart_type = providedChartType
 
         print(f"LLM selected chart type: {chart_type}")
+
         return {
             "chart_type": chart_type,
             "config": chart_config
