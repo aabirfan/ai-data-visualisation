@@ -53,7 +53,17 @@ def execute_pie_chart_query(query):
 
     patched_results = []
     for r in results:
-        if isinstance(r.get("_id"), dict) and {"hour", "sensor"}.issubset(r["_id"]):
+        if isinstance(r.get("_id"), dict) and {"date", "sensor"}.issubset(r["_id"]):
+            date_str = r["_id"]["date"]  
+            sensor = r["_id"]["sensor"]
+            timestamp = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            patched_results.append({
+            "timestamp": timestamp,
+            "value": r.get("averageValue"),
+            "metadata": {"name": sensor}
+        })
+            continue
+        elif isinstance(r.get("_id"), dict) and {"hour", "sensor"}.issubset(r["_id"]):
             hour = r["_id"]["hour"]
             sensor = r["_id"]["sensor"]
             date = query[0]["$match"]["timestamp"]["$gte"].date()
@@ -65,11 +75,16 @@ def execute_pie_chart_query(query):
             })
         else:
             patched_results.append({
-                "_id": str(r.get("_id", "Unknown")),
-                "count": r.get("count", 0)
+            "_id": str(r.get("_id", "Unknown")),
+            "count": r.get("count", 0),
+            "metadata": {
+            "name": query[0].get("$match", {}).get("metadata.name", "Unknown Sensor")
+                }
             })
 
     return patched_results
+    
+
 
 def execute_query(query, asset_id):
     query = unwrap_query(query)

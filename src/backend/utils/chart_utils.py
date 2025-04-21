@@ -9,11 +9,17 @@ def generate_chart_from_query_results(user_query, query_results, chartType):
         return {"error": "No data retrieved from MongoDB."}
     
     is_aggregated = "_id" in query_results[0] and "count" in query_results[0]
-
     if is_aggregated:
+        filled_config = fill_pie_chart_data(query_results, user_query, query_results)
+        parsed_config = json.loads(filled_config)
+    
         return {
-            "message": fill_pie_chart_data(query_results, user_query)
-        }
+            "chartData": parsed_config["data"],
+            "chartOptions": parsed_config.get("options", {}),
+            "chartType": parsed_config["type"],
+            "llmTitle": parsed_config.get("options", {}).get("plugins", {}).get("title", {}).get("text", "")
+    }
+
 
 
     sensor_names = list(set(
