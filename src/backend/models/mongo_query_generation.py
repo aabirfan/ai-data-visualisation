@@ -94,7 +94,6 @@ If the user request contains natural language time expressions (e.g. yesterday, 
 - DO NOT leave any natural expressions like yesterday or this week in the output.
 """
 )
-    print("Injected system prompt:\n", system_instruction)
     print(f"Sending prompt to LLM for query generation: {prompt}")
 
     try:
