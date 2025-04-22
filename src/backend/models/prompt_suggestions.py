@@ -1,5 +1,5 @@
 from .prompt_history import get_prompt_history
-from utils.sensor_parser import get_sensor_types
+from utils.sensor_parser import get_sensor_types, get_recent_sensors
 from utils.date_parser import get_date_range
 import google.generativeai as genai
 import os
@@ -30,7 +30,11 @@ Prompt History:
 Return exactly 3 suggestions. No numbering or bullet points.
 """
         else:
-            sensor_names = get_sensor_types()
+            sensor_names = get_recent_sensors(asset_id)
+
+            if not sensor_names:
+                sensor_names = get_sensor_types()
+
             sensor_list = "\n- " + "\n- ".join(sensor_names[:30])
 
             start_date, end_date = get_date_range(asset_id)
@@ -45,6 +49,8 @@ Here is a list of available sensor names:
 {sensor_list}
 
 {date_range_text}
+
+The system supports line charts, bar charts, pie charts (distributions), and daily/weekly averages.
 
 Based on these sensors and available time range, suggest 3 beginner-friendly chart prompts.
 Each suggestion should:

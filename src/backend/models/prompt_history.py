@@ -17,8 +17,8 @@ def add_prompt_history(query: str, asset_id: str):
             raise HTTPException(status_code=500)
 
         count = collection.count_documents({"asset_id": asset_id})
-        if count > 10:
-            excess = count - 10
+        if count > 20:
+            excess = count - 20
             oldest_entries = collection.find({"asset_id": asset_id}).sort("timestamp", 1).limit(excess)
             ids_to_delete = [entry["_id"] for entry in oldest_entries]
             collection.delete_many({"_id": {"$in": ids_to_delete}})
@@ -31,7 +31,7 @@ def get_prompt_history(asset_id):
         history = list(
             collection.find({"asset_id": asset_id}, {"_id": 0, "query": 1, "timestamp": 1})
             .sort("timestamp", 1)
-            .limit(10)
+            .limit(20)
         )
 
         local_tz = pytz.timezone("Europe/Oslo") 
