@@ -6,6 +6,7 @@ import os
 from .database import collection as Telemetry  
 from dotenv import load_dotenv
 from utils.sensor_parser import get_sensor_types
+from utils.date_parser import today_str
 
 load_dotenv("../../.env.local")
 
@@ -37,55 +38,63 @@ def generate_mongo_query_from_prompt(prompt):
     known_sensors = get_sensor_types()
     sensor_list_string = "\n- " + "\n- ".join(sorted(known_sensors))
 
-    system_instruction = (
-    "You are an AI that generates MongoDB queries based on user requests. "
-    "Your response **must be a JSON object** or a list of aggregation stages depending on the user's intent.\n\n"
-    
-    "### Valid Sensor Names:\n"
-    f"{sensor_list_string}\n\n"
+    system_instruction = (f"""
+You are an AI that generates MongoDB queries based on user requests. 
+Your response **must be a JSON object** or a list of aggregation stages depending on the user's intent.
+Today's date is {today_str}.
 
-    "### 1. Standard Sensor Queries (Line/Bar Charts):\n"
-    f"{json.dumps(reference_query_sensors, indent=2)}\n\n"
+### Valid Sensor Names:
+{sensor_list_string}
 
-    "### 2. Pie Chart (Distribution Queries):\n"
-    f"{json.dumps(reference_query_distribution, indent=2)}\n\n"
+### 1. Standard Sensor Queries (Line/Bar Charts):
+{json.dumps(reference_query_sensors, indent=2)}
 
-    "### 3. Grouped by Day (Daily Averages):\n"
-    "If the user asks for *daily averages*, *grouped by day*, *average per day*, *summarised by date*, etc.,\n"
-    "return a MongoDB aggregation pipeline that:\n"
-    "- Filters data by time range and sensor(s)\n"
-    "- Groups by `$dateToString: { format: '%Y-%m-%d', date: '$timestamp' }` and sensor name\n"
-    "- Calculates the average using `$avg`\n"
-    "- Sorts results by date\n"
-    "\n"
-    "**Example:**\n"
-    + json.dumps([
-        {"$match": {
-            "metadata.name": "pH in",
-            "timestamp": {
-                "$gte": "2022-09-01T00:00:00Z",
-                "$lt": "2022-10-01T00:00:00Z"
-            }
-        }},
-        {"$group": {
-            "_id": {
-                "date": { "$dateToString": { "format": "%Y-%m-%d", "date": "$timestamp" }},
-                "sensor": "$metadata.name"
-            },
-            "averageValue": { "$avg": "$value" }
-        }},
-        {"$sort": { "_id.date": 1 }}
-    ], indent=2) + "\n\n"
+### 2. Pie Chart (Distribution Queries):
+{json.dumps(reference_query_distribution, indent=2)}
 
-    "### Rules for Query Generation:\n"
-    "- Use `$in` if multiple sensors are requested.\n"
-    "- If the user prompt includes words like **distribution**, **proportion**, **percent**, or **pie chart**, return an **aggregation pipeline** (list).\n"
-    "- If the user prompt includes phrases like **grouped by day**, **daily average**, **per day**, **summarised by date**, return an **aggregation pipeline** that groups by date and sensor name.\n"
-    "- For everything else, return a **standard MongoDB query** (JSON object).\n"
-    "- NEVER return markdown, explanations, or text. Only valid MongoDB JSON."
+### 3. Grouped by Day (Daily Averages):
+If the user asks for *daily averages*, *grouped by day*, *average per day*, *summarised by date*, etc.,
+return a MongoDB aggregation pipeline that:
+- Filters data by time range and sensor(s)
+- Groups by `$dateToString: {{ format: '%Y-%m-%d', date: '$timestamp' }}` and sensor name
+- Calculates the average using `$avg`
+- Sorts results by date
+
+**Example:**
+{json.dumps([
+    {"$match": {
+        "metadata.name": "pH in",
+        "timestamp": {
+            "$gte": "2022-09-01T00:00:00Z",
+            "$lt": "2022-10-01T00:00:00Z"
+        }
+    }},
+    {"$group": {
+        "_id": {
+            "date": { "$dateToString": { "format": "%Y-%m-%d", "date": "$timestamp" }},
+            "sensor": "$metadata.name"
+        },
+        "averageValue": { "$avg": "$value" }
+    }},
+    {"$sort": { "_id.date": 1 }}
+], indent=2)}
+
+### Rules for Query Generation:
+- Use `$in` if multiple sensors are requested.
+- If the user prompt includes words like **distribution**, **proportion**, **percent**, or **pie chart**, return an **aggregation pipeline** (list).
+- If the user prompt includes phrases like **grouped by day**, **daily average**, **per day**, **summarised by date**, return an **aggregation pipeline** that groups by date and sensor name.
+- For everything else, return a **standard MongoDB query** (JSON object).
+- NEVER return markdown, explanations, or text. Only valid MongoDB JSON.
+
+### Additional Rule for Dates:
+If the user request contains natural language time expressions (e.g. yesterday, last week, past 3 days, from Monday to Friday, this weekend):
+- You MUST convert all such expressions into **explicit ISO 8601 date strings** in the final query.
+- Use YYYY-MM-DDT00:00:00Z for `$gte`, and YYYY-MM-DDT23:59:59Z for `$lt`.
+- Use today's date as reference: {today_str}.
+- DO NOT leave any natural expressions like yesterday or this week in the output.
+"""
 )
-
-
+    print("Injected system prompt:\n", system_instruction)
     print(f"Sending prompt to LLM for query generation: {prompt}")
 
     try:

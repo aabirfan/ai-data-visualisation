@@ -168,3 +168,7 @@ def get_date_range(asset_id: str = None):
         return None, None
 
     return oldest[0]["timestamp"].date(), newest[0]["timestamp"].date()
+
+today_str = datetime.utcnow().strftime("%d %B %Y")
+
+
