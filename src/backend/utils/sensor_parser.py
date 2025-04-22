@@ -1,4 +1,5 @@
 from models.database import collection as Telemetry
+from datetime import datetime, timedelta
 import re
 
 SENSOR_NAMES_CACHE = None
@@ -27,6 +28,18 @@ def get_sensor_types():
             print("WARNING: No sensor names found in database")
     
     return SENSOR_NAMES_CACHE
+
+def get_recent_sensors(asset_id: str, days: int = 14, limit: int = 10) -> list[str]:
+    cutoff = datetime.utcnow() - timedelta(days=days)
+    pipeline = [
+        {"$match": {"asset_id": asset_id, "timestamp": {"$gte": cutoff}}},
+        {"$group": {"_id": "$metadata.name", "latest": {"$max": "$timestamp"}}},
+        {"$sort": {"latest": -1}},
+        {"$limit": limit}
+     ]
+    results = list(Telemetry.aggregate(pipeline))
+    return [r["_id"] for r in results]
+
 
 def extract_sensor(query_text):
     query_text = query_text.lower().strip()
