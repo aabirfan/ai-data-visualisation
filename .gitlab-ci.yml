@@ -17,5 +17,5 @@ test_backend:
   script:
     - echo "Running tests..."
     - pytest src/backend/tests/unit
-  only:
-  - merge_requests
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
