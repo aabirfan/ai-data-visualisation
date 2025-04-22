@@ -42,4 +42,3 @@ def test_manual_chart_builder_empty_input():
     assert result["chartData"]["labels"] == []
     assert result["chartData"]["datasets"][0]["data"] == []
     assert result["chartData"]["datasets"][0]["label"] == "Empty Test"
-"
