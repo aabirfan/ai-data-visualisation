@@ -35,40 +35,61 @@ const ChartJs: React.FC<ChartJsCodeRendererProps> = ({
 }) => {
   const chartRef = useRef<HTMLCanvasElement | null>(null);
   const chartInstance = useRef<Chart | null>(null);
+  const [chartError, setChartError] = useState<string | null>(null);
 
   useEffect(() => {
     if (chartData && chartOptions && chartType && chartRef.current) {
       if (chartInstance.current) {
         chartInstance.current.destroy();
       }
-
-      chartInstance.current = new Chart(chartRef.current, {
-        type: chartType,
-        data: chartData,
-        options: chartOptions,
-      });
+  
+      try {
+        chartInstance.current = new Chart(chartRef.current, {
+          type: chartType,
+          data: chartData,
+          options: chartOptions,
+        });
+        setChartError(null); 
+      } catch (error: any) {
+        setChartError(`Sorry, this chart type (${chartType}) is not supported.`);
+      }
     }
-
+  
     return () => {
       if (chartInstance.current) {
         chartInstance.current.destroy();
       }
     };
   }, [chartData, chartOptions, chartType]);
+  
 
-  if (textResponse) {
+  const errorText = textResponse || chartError;
+
+  if (errorText) {
+    const sadKeywords = ["no data", "not found", "please include", "sorry"];
+    const isSad = sadKeywords.some(keyword =>
+      errorText.toLowerCase().includes(keyword)
+    );
+  
     return (
       <div className="chat-container">
         <div className="query-box">
           <p>{userQuery}</p>
         </div>
-          <div className="text-response">
-          <img className="response-img" src="illi_blink.png" alt="bot" />
-          <p>{textResponse}</p>
+        <div className="text-response">
+          <img
+            className="response-img"
+            src={isSad ? "illi_sad.png" : "illi_blink.png"}
+            alt="bot"
+          />
+          <p>{errorText}</p>
         </div>
       </div>
     );
   }
+  
+  
+  
 
   if (!chartData || !chartOptions || !chartType) {
     return (
@@ -182,40 +203,34 @@ function LLMCharts({ loading, setLoading, selectedAsset}: llmChartProps) {
             </div>
           </Dialog> 
 
-      <div className="llm-content">
-        {loading && <p className="loading">
-          Fetching data...</p>}
-        {response ? (
-          response.error ? (
-            <div className="error-message">
-              <p>{response.error}</p>
-              {response.error.includes("Invalid date format") ? (
-                <ul>
-                  <li>Ensure the date format is <strong>YYYY-MM-DD, DD/MM/YYYY or Day Month Year</strong></li>
-                  <li>Example: <strong>2022-09-27, 27/09/2022 or 27 September 2022</strong></li>
-                </ul>
-              ) : (
-                <ul>
-                  <li>Try asking for <strong>pH in</strong></li>
-                  <li>Try asking for <strong>pH out</strong></li>
-                  <li>Try asking for <strong>CO2 usage</strong></li>
-                </ul>
-              )}
-            </div>
-          ) : (
-            <>
-              <ChartJs chartData={chartData} chartOptions={chartOptions} chartType={chartType} textResponse={response?.type === "text" ? response.content : null} 
-              userQuery={userQuery} 
-              
- />
-
-              <div className="save-btn">
-                <button onClick={() => setModalOpen(true)}>Save chart...</button>
-              </div>
-            </>
-          )
-        ) : null}
+          <div className="llm-content">
+          {loading && <p className="loading">Fetching data...</p>}
+{response ? (
+  response.error || response.message ? (
+    <ChartJs
+      chartData={null}
+      chartOptions={null}
+      chartType={null}
+      textResponse={response.error || response.message}
+      userQuery={userQuery}
+    />
+  ) : (
+    <>
+      <ChartJs
+        chartData={chartData}
+        chartOptions={chartOptions}
+        chartType={chartType}
+        textResponse={response?.type === "text" ? response.content : null}
+        userQuery={userQuery}
+      />
+      <div className="save-btn">
+        <button onClick={() => setModalOpen(true)}>Save chart...</button>
       </div>
+    </>
+  )
+) : null}
+</div>
+
     </div>
   );
 }

@@ -119,7 +119,8 @@ def execute_query(query, asset_id):
         return {"error": "MongoDB query execution failed."}
 
     if not results:
-        return {"error": "No matching data found."}
+        return {"success": False, "message": "No data matches your request. Try a new timeframe or sensor."}
+
 
     print(f"Has {len(results)} records.")
     return results
@@ -129,12 +130,21 @@ def execute_queries(filled_queries, asset_id):
         return {"error": "Invalid query format"}
 
     results = []
+
     for raw in filled_queries:
         query = unwrap_query(raw)
         query = inject_asset_id(query, asset_id)
         query_results = execute_query(query, asset_id)
 
-        if query_results and "error" not in query_results:
+
+        if isinstance(query_results, dict) and (query_results.get("error") or query_results.get("success") is False):
+            return query_results
+
+        if isinstance(query_results, list):
             results.extend(query_results)
 
+    if not results:
+        return {"success": False, "message": "No data matches your request. Try a new timeframe or sensor."}
+
     return results
+

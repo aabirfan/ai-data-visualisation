@@ -103,6 +103,46 @@ If the user request contains natural language time expressions (e.g. yesterday, 
         clean_response = raw_response.strip("```json").strip("```").strip()
         mongo_query = json.loads(clean_response)
 
+        def query_has_known_sensor(q, known_sensors):
+            if isinstance(q, dict) and "metadata" in q and isinstance(q["metadata"], dict):
+                name = q["metadata"].get("name")
+                if isinstance(name, str):
+                    return name in known_sensors
+                elif isinstance(name, dict) and "$in" in name:
+                    return any(n in known_sensors for n in name["$in"])
+            if isinstance(q, dict) and "metadata.name" in q:
+                name = q["metadata.name"]
+                if isinstance(name, str):
+                    return name in known_sensors
+                elif isinstance(name, dict) and "$in" in name:
+                    return any(n in known_sensors for n in name["$in"])
+            return True  
+
+
+        if not query_has_known_sensor(mongo_query, known_sensors):
+            return {
+            "success": False,
+            "message": "Sorry, I did not recognise any valid sensors in your request."
+        }
+
+
+        def query_has_timeframe(q):
+            if isinstance(q, dict) and "timestamp" in q:
+                return True
+            if isinstance(q, list):
+                for stage in q:
+                    if "$match" in stage and "timestamp" in stage["$match"]:
+                        return True
+            return False
+
+        if not query_has_timeframe(mongo_query):
+            return {
+        "success": False,
+        "message": "Please include a timeframe."
+    }
+        
+
+
         if isinstance(mongo_query, list):
             for stage in mongo_query:
                 if "$match" in stage and "timestamp" in stage["$match"]:
@@ -126,6 +166,7 @@ If the user request contains natural language time expressions (e.g. yesterday, 
             "query": mongo_query,
             "intent": query_type
         }
+    
 
     except json.JSONDecodeError as e:
         print("LLM JSON Error:", str(e))
