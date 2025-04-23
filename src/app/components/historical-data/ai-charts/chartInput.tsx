@@ -17,7 +17,7 @@ interface ChartInputProps {
 const sanitizeInput = (input: string) => {
   const trimmed = input.trim();
   // Only allows normal characters (i.e not < >). Mitigates Script Injections. 
-  const pattern = /^[\w\s\-.,?!@#%&()æøåÆØÅ]+$/;
+  const pattern = /^[\w\sæøåÆØÅ\/+]+$/;
   return pattern.test(trimmed) ? trimmed : "";
 };
 
