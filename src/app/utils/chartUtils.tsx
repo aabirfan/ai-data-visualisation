@@ -34,7 +34,14 @@ export const handleChartRequest = async (
     if (!res.ok) {
       setResponse({ error: "Unexpected error occurred." });
     } else {
-      if (data.text) {
+      if (data && data.success === false && typeof data.message === "string")
+        {
+        setResponse({ message: data.message });
+        setChartData(null);
+        setChartOptions(null);
+        setChartType(null);
+        if (setChartTitle) setChartTitle("Notice");
+      } else if (data.text) {
         setResponse({ type: "text", content: data.text });
         setChartData(null);
         setChartOptions(null);
@@ -45,15 +52,15 @@ export const handleChartRequest = async (
         setChartOptions(data.chartOptions);
         setChartType(data.chartType);
         setResponse({ type: "chart", ...data });
-
+    
         if (setChartTitle && data.llmTitle) {
           setChartTitle(data.llmTitle);
         }
       } else {
-        // Unknown structure
-        setResponse({ error: "Unexpected data format from server." });
+        setResponse({ error: "Unexpected processing. Please try again!" });
       }
     }
+    
   } catch (error) {
     console.error("Error fetching data:", error);
     setResponse({ error: "An error occurred while processing your request." });
