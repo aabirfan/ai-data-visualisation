@@ -4,7 +4,7 @@ from models.llm_chart import generate_llm_chart_config
 from models.fill_chart import fill_pie_chart_data, fill_llm_chart_data
 
 
-def generate_chart_from_query_results(user_query, query_results, chartType):
+def generate_chart_from_query_results(user_query, query_results, chartType, previousPrompt):
     if not query_results or not isinstance(query_results, list):
         return {"error": "No data retrieved from MongoDB."}
     
@@ -47,7 +47,8 @@ def generate_chart_from_query_results(user_query, query_results, chartType):
         num_data_points=data_summary.length,
         query=user_query,
         summary_stats=data_summary,
-        providedChartType=chartType
+        providedChartType=chartType,
+        previous_Prompt=previousPrompt
     )
 
     if not llm_result:

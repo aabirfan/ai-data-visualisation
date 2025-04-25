@@ -180,9 +180,9 @@ def process_user_query(user_query, asset_id):
 
     if isText is True:
         print("Text answer needed")
-        return generate_text_from_query_results(user_query, raw_results, object_name)
+        return generate_text_from_query_results(user_query, raw_results, sensor_name=object_name)
     else:
-        return generate_chart_from_query_results(user_query, raw_results, chartType)
+        return generate_chart_from_query_results(user_query, raw_results, chartType, previousPrompt=None)
 
    
 

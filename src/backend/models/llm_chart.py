@@ -28,7 +28,7 @@ model = genai.GenerativeModel(
 )
 
 
-def generate_llm_chart_config(sensor_name, num_data_points, query, summary_stats, providedChartType):
+def generate_llm_chart_config(sensor_name, num_data_points, query, summary_stats, providedChartType, previous_Prompt):
     reference_chart = {
         "type": "line",
         "data": {
@@ -77,6 +77,9 @@ You are a Chart.js assistant. Your task is to choose the most suitable chart typ
 - If you're unsure, fall back to the rules below.
 - **IMPORTANT**: If the chart type is "pie", do NOT include `scales` in the configuration.
 - **IMPORTANT**: Title must be clean and descriptive. Include the full sensor name and date if available.
+- These were the previous prompts "{previous_Prompt}". If populated list it is the previous prompts in the conversation starting with the oldest.
+if it is not an empty string, then you should treat your reply as the next in that conversation. Interpert accordingly. If not, just use the newest prompt.
+- You should always generate chart based on  the provided user query, but use previous prompts as context for adjustment.
 
 ### Chart type provided?:
 "{providedChartType}"

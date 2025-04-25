@@ -119,6 +119,7 @@ function LLMCharts({ loading, setLoading, selectedAsset}: llmChartProps) {
   const [chartDescription, setChartDescription] = useState<string>("");
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [userQuery, setUserQuery] = useState<string>(""); 
+  const [previousQuery, setPreviousQuery] = useState<string[]>([]);
 
   const handleTitleSave = (savedChartTitle: string) => {
     setChartTitle(sanitizeInput(savedChartTitle));
@@ -131,27 +132,26 @@ function LLMCharts({ loading, setLoading, selectedAsset}: llmChartProps) {
 
 
   const openModal = () => setModalOpen(true);
-  const closeModal = () => setModalOpen(false);
-
-  const savePromptHistory = (query: string ) => {
-    if (typeof query !== "string") {
-      return; 
-    }
-    let history = JSON.parse(localStorage.getItem("promptHistory") || "[]");
-    history.unshift(query); 
-    localStorage.setItem("promptHistory", JSON.stringify(history));
-  };
-  
+  const closeModal = () => setModalOpen(false);  
   
   return (
     <div className="llm-container">
 
     <ChartInput 
     onSubmit={(query) => { 
+
+    if (query.startsWith("reply")) {
+      setPreviousQuery(prev => [...prev, `${query}`]);
+    } else {
+      setPreviousQuery([query]);
+    } 
+
     setUserQuery(query);
     setShowSuggestions(false);
-    savePromptHistory(query);
-    handleChartRequest(query, selectedAsset, setLoading, setResponse, setChartData, setChartOptions, setChartType, setChartTitle);
+    handleChartRequest(
+      query, selectedAsset, previousQuery, setLoading,
+      setResponse, setChartData, setChartOptions, setChartType, setChartTitle
+    );
   }}
   selectedAsset={selectedAsset}
   loading={loading}
@@ -162,7 +162,7 @@ function LLMCharts({ loading, setLoading, selectedAsset}: llmChartProps) {
   onSubmit={(query) => {
     setShowSuggestions(false); 
     savePromptHistory(query);
-    handleChartRequest(query, selectedAsset, setLoading, setResponse, setChartData, setChartOptions, setChartType, setChartTitle);
+    handleChartRequest(query, selectedAsset, previousQuery, setLoading, setResponse, setChartData, setChartOptions, setChartType, setChartTitle);
   }}
 />
 )}

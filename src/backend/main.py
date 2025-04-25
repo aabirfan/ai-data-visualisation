@@ -49,7 +49,7 @@ app.add_middleware(
 
 class QueryRequest(BaseModel):
     query: str
-    selectedAsset: str
+    asset_id: str
 
 class ChartData(BaseModel):
     chartData: Any
@@ -69,6 +69,7 @@ class asset_req(BaseModel):
 class PromptRequest(BaseModel):
     query: str 
     asset_id: str
+    previousQuery: list[str]
 
 
 @app.get("/")
@@ -80,6 +81,7 @@ def read_root():
 async def process_query(query_request: PromptRequest, request: Request):
     print(f"Received query_request: {query_request}")
     print(f"Asset ID: {query_request.asset_id}")
+    print(f"Previous prompt: {query_request.previousQuery}")
     #Temporary, the prompt has to start with manual to receive a manual chart
 
     if query_request.query.lower().startswith("manual"):
@@ -95,10 +97,14 @@ async def process_query(query_request: PromptRequest, request: Request):
     
     #Temporary, the prompt has to start with rag to receive a rag chart
     if query_request.query.lower().startswith("rag"):
-        return process_user_query(query_request.query, query_request.asset_id)  
+        return process_user_query(query_request.query, query_request.asset_id) 
+    
+    #Temporary, if prompt starts with reply, run pipeline with that flag.
+    if query_request.query.lower().startswith("reply"):
+        return process_llm_pipeline(query_request.query, query_request.asset_id, query_request.previousQuery, isReply=True)
 
     #PIPELINE 3
-    return process_llm_pipeline(query_request.query, query_request.asset_id)
+    return process_llm_pipeline(query_request.query, query_request.asset_id, previous_prompt=None, isReply=False)
 
 
 @app.post("/save_chart")
@@ -132,7 +138,7 @@ async def remove_saved_chart(data: removeData, request: Request):
 
 @app.post("/api/save-prompt/")
 @limiter.limit("20/minute")
-async def save_prompt(data: PromptRequest, request: Request):
+async def save_prompt(data: QueryRequest, request: Request):
     add_prompt_history(data.query, data.asset_id)  
     return JSONResponse(content={"message": "Prompts saved"})
 

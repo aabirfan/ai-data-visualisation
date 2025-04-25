@@ -6,7 +6,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'
 
 ## IMPORTS
 from models.llm_chart import generate_text_from_query_results
-from models.embeddings import extract_variables
 
 ## LLM 
 

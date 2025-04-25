@@ -1,6 +1,7 @@
 export const handleChartRequest = async (
   query: string | number[],
   selectedAsset: string,
+  previousQuery: string[],
   setLoading: React.Dispatch<React.SetStateAction<boolean>>,
   setResponse: React.Dispatch<React.SetStateAction<any>>,
   setChartData: React.Dispatch<React.SetStateAction<any>>,
@@ -14,6 +15,7 @@ export const handleChartRequest = async (
   const requestData = {
     query,
     asset_id: String(selectedAsset),
+    previousQuery,
   };
 
   try {

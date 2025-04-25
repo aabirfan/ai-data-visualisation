@@ -14,7 +14,7 @@ genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 model = genai.GenerativeModel("models/gemini-1.5-flash")
 
 
-def generate_mongo_query_from_prompt(prompt):
+def generate_mongo_query_from_prompt(prompt, previousPrompt):
     reference_query_sensors = {
         "metadata": {"name": {"$in": ["pH in", "pH out"]}},
         "timestamp": {
@@ -79,7 +79,10 @@ return a MongoDB aggregation pipeline that:
     {"$sort": { "_id.date": 1 }}
 ], indent=2)}
 
-### Rules for Query Generation:
+### Rules for Query Generation
+- This was the previous prompts "{previousPrompt}". If populated it is the previous prompts in the conversation starting with the oldest.
+if it is not an empty string, then you should treat your reply as the next in that conversation. Interpert accordingly. If not, just use the newest prompt.
+- You should always query using the provided user query, but use previous prompts as context for adjustment (such as dates).
 - Use `$in` if multiple sensors are requested.
 - If the user prompt includes words like **distribution**, **proportion**, **percent**, or **pie chart**, return an **aggregation pipeline** (list).
 - If the user prompt includes phrases like **grouped by day**, **daily average**, **per day**, **summarised by date**, return an **aggregation pipeline** that groups by date and sensor name.

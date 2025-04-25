@@ -6,8 +6,6 @@ import PromptHistory from "./promptHistory";
 import "../../../styles/modals.css";
 import { IoMdArrowBack } from "react-icons/io";
 
-
-
 interface ChartInputProps {
   onSubmit: (query: string) => void; 
   loading: boolean;
@@ -17,7 +15,7 @@ interface ChartInputProps {
 const sanitizeInput = (input: string) => {
   const trimmed = input.trim();
   // Only allows normal characters (i.e not < >). Mitigates Script Injections. 
-  const pattern = /^[\w\sæøåÆØÅ\/+]+$/;
+  const pattern = /^[\w\sæøåÆØÅ\/,.?+]+$/;
   return pattern.test(trimmed) ? trimmed : "";
 };
 
