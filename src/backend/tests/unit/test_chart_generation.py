@@ -3,9 +3,10 @@ import sys
 import os
 from datetime import datetime
 from unittest.mock import patch, MagicMock
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
 
-## IMPORTS
+# IMPORTS
 from models.chart_generation import manual_chart_builder 
 
 def test_manual_chart_builder_basic():
@@ -14,7 +15,7 @@ def test_manual_chart_builder_basic():
         ("2025-04-22 15:00:00", 6.1),
     ]
     
-    result = manual_chart_builder(data_input, "test" "PH Sensor")
+    result = manual_chart_builder(data_input, "test", "PH Sensor")
     
     assert result["chartType"] == "line"
     assert result["chartData"]["datasets"][0]["label"] == "PH Sensor"
@@ -31,13 +32,13 @@ def test_manual_chart_builder_zeros_filtered():
         ("2025-04-22 15:00:00", 4.2),
     ]
     
-    result = manual_chart_builder(data_input, "Test" "Turbidity Sensor")
+    result = manual_chart_builder(data_input, "test", "Turbidity Sensor")
     
     assert result["chartData"]["labels"] == ["2025-04-22T15:00:00"]
     assert result["chartData"]["datasets"][0]["data"] == [4.2]
 
 def test_manual_chart_builder_empty_input():
-    result = manual_chart_builder([], "Test" "Empty Test")
+    result = manual_chart_builder([], "test", "Empty Test")
     
     assert result["chartData"]["labels"] == []
     assert result["chartData"]["datasets"][0]["data"] == []
