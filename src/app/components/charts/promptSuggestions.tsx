@@ -1,12 +1,13 @@
 import React, { useEffect, useState, useRef } from "react";
-import "../../../styles/promptSuggestions.css";
+import "../../styles/promptSuggestions.css";
 
 interface Props {
   selectedAsset: string;
+  isNew?: boolean;
   onSubmit: (query: string) => void;
 }
 
-export default function PromptSuggestions({ selectedAsset, onSubmit }: Props) {
+export default function PromptSuggestions({ selectedAsset, isNew, onSubmit }: Props) {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const hasFetched = useRef(false);
@@ -44,7 +45,7 @@ export default function PromptSuggestions({ selectedAsset, onSubmit }: Props) {
   }
 
   return (
-    <div className="suggestion-container">
+    <div className={`suggestion-container ${isNew ? "centered" : ""}`}>
       {loading ? (
         <p className="loading">Loading suggestions...</p>
       ) : (

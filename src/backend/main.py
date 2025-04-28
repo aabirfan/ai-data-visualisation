@@ -23,7 +23,7 @@ from models.llm_pipeline import process_llm_pipeline #Pipeline 3
 
 from models.chart_archiving import addArchivedChart
 from models.chart_archiving import get_chart_data
-from models.chart_archiving import remove_saved_data
+from models.chart_archiving import remove_saved_data, get_chart_history, addChartHistory
 
 from models.prompt_history import add_prompt_history, get_prompt_history, clear_prompt_history
 from models.prompt_suggestions import get_suggested_prompts
@@ -57,8 +57,8 @@ class ChartData(BaseModel):
     chartType: str
     date: int
     title: str
-    description: str
     asset_id: str
+    previousQueries: list
 
 class removeData(BaseModel):
     timestamp: int
@@ -92,7 +92,7 @@ async def process_query(query_request: PromptRequest, request: Request):
         if isinstance(response, dict) and "error" in response:
             return {"error": response["error"]}
         
-        chart = manual_chart_builder(response, sensor_name)
+        chart = manual_chart_builder(response, query_request.query, sensor_name)
         return chart
     
     #Temporary, the prompt has to start with rag to receive a rag chart
@@ -121,6 +121,26 @@ async def process_saving_chart(data: ChartData, request: Request):
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
+    
+@app.post("/save_chart_history")
+@limiter.limit("20/minute")
+async def process_saving_chart_history(data: ChartData, request: Request):
+    try:
+        # Convert the ChartData to a dictionary and then to a JSON string
+        chart_dict = data.dict()  # Convert the Pydantic model to a dictionary
+
+        addChartHistory(chart_dict)
+
+        return {"message": "Chart history saved successfully!"}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
+    
+@app.post("/get_chart_history")
+@limiter.limit("20/minute")
+async def process_getting_chart_history(data: asset_req, request: Request):
+   history_data = get_chart_history(data.asset_id)
+   return JSONResponse(content={"data": history_data}) 
     
 
 @app.post("/get_chart_data")

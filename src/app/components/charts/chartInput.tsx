@@ -1,34 +1,27 @@
 import { useState } from "react";
 import { FaArrowRight } from "react-icons/fa"; 
-import Modal from "../../../modals/modal";
-import Archived_Graphs_List from "./archived_graphs_list";
-import PromptHistory from "./promptHistory"; 
-import "../../../styles/modals.css";
-import { IoMdArrowBack } from "react-icons/io";
+import "../../styles/modals.css";
+import { useChartContext } from "@/app/context/chartContext";
 
 interface ChartInputProps {
+  title?: string; 
+  isNew?: boolean;
   onSubmit: (query: string) => void; 
-  loading: boolean;
-  selectedAsset: string;
 }
 
 const sanitizeInput = (input: string) => {
-  const trimmed = input.trim();
-  // Only allows normal characters (i.e not < >). Mitigates Script Injections. 
-  const pattern = /^[\w\sæøåÆØÅ\/,.?+]+$/;
-  return pattern.test(trimmed) ? trimmed : "";
+  const pattern = /^[a-zA-Z0-9æøåÆØÅ\s\/,-.?+]*$/;
+  return pattern.test(input) ? input : "";
 };
 
-export default function ChartInput({ onSubmit, loading, selectedAsset }: ChartInputProps) {
-  const [query, setQuery] = useState("");
-  const [isModalOpen, setModalOpen] = useState(false);
-  const [isGraphOpen, setIsGraphOpen] = useState(false);
-  const [isPromptHistoryOpen, setPromptHistoryOpen] = useState(false);
+export default function ChartInput({title,isNew, onSubmit}: ChartInputProps) {
 
-  const openModal = () => setModalOpen(true);
-  const closeModal = () => setModalOpen(false);
-  const openPromptHistory = () => setPromptHistoryOpen(true);
-  const closePromptHistory = () => setPromptHistoryOpen(false);
+  const {
+    loading,
+    selectedAsset
+  } = useChartContext();
+
+  const [query, setQuery] = useState("");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>, asset_id: string) => {
     e.preventDefault();
@@ -68,9 +61,9 @@ export default function ChartInput({ onSubmit, loading, selectedAsset }: ChartIn
   };
 
   return (
-    <div className="chart-container">
+    <div className={`input-container ${isNew ? "centered" : ""}`}>
       <div className="input-title">
-        <h2 className="chart-title">What can I help you with?</h2>
+        <h2>{title}</h2>
         <img 
           src={loading ? "illi_loading.png" : "illi.png"} 
           alt="Status Image" 
@@ -85,7 +78,7 @@ export default function ChartInput({ onSubmit, loading, selectedAsset }: ChartIn
   
         <input
           type="text"
-          placeholder="Enter chart suggestion..."
+          placeholder="Enter your suggestion..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="chart-input"
@@ -95,25 +88,7 @@ export default function ChartInput({ onSubmit, loading, selectedAsset }: ChartIn
           {loading ? <div className="spinner"></div> : <FaArrowRight className="chart-send-icon" />}
         </button>
       </form>
-
-      <div className="input-btns">
-        <button onClick={openPromptHistory}>Prompt history</button>
-        <button onClick={openModal}>Archived charts</button>
-      </div>
-
-      <PromptHistory isOpen={isPromptHistoryOpen} onClose={closePromptHistory} onSubmit={onSubmit} selectedAsset={selectedAsset} />
-
-      <Modal isOpen={isModalOpen} onClose={closeModal}>
-        <div className="modal-header">
-        {!isGraphOpen && ( 
-            <button className="close-btn" onClick={closeModal}>
-          <IoMdArrowBack />
-            </button>
-          )}
-         <h2>Archived Charts</h2>
-        </div>
-        <Archived_Graphs_List isOpen={isModalOpen} onClose={closeModal} setIsGraphOpen={setIsGraphOpen} selectedAsset={selectedAsset} />
-      </Modal>
+      
     </div>
   );
 }
