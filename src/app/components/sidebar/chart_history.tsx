@@ -37,7 +37,8 @@ export default function ChartHistory() {
     activeChart,
     setActiveChart,
     setPreviousQuery,
-    setIsSaved
+    setIsSaved,
+    setIsNew
   } = useChartContext();
 
 
@@ -49,6 +50,7 @@ export default function ChartHistory() {
     setActiveChart(chart);
     setPreviousQuery(chart.previousQueries);
     setIsSaved(false);
+    setIsNew(false);
   }
 
 

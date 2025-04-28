@@ -18,9 +18,6 @@ const Charts: React.FC = () => {
   const [isSmodalOpen, setSmodalOpen] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [userQuery, setUserQuery] = useState<string>(""); 
-  const [isNew, setIsNew] = useState<boolean>(true);
-
-
 
   const {
     chartData,
@@ -41,6 +38,8 @@ const Charts: React.FC = () => {
     isSaved,
     chartDate,
     setIsSaved,
+    isNew,
+    setIsNew
   } = useChartContext();
 
 
@@ -163,7 +162,7 @@ const Charts: React.FC = () => {
             />
           )}
   
-        {showSuggestions && (
+        {(showSuggestions && isNew) && (
           <PromptSuggestions
             selectedAsset={selectedAsset}
             isNew={isNew}

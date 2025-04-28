@@ -39,6 +39,7 @@ export default function ArchivedCharts() {
     setIsSaved,
     setChartDate,
     setChartTitle,
+    setIsNew
   } = useChartContext();
 
 
@@ -51,24 +52,8 @@ export default function ArchivedCharts() {
     setPreviousQuery(chart.previousQueries);
     setIsSaved(true);
     setChartDate(chart.date);
+    setIsNew(false);
   }
-
-
-  const downloadChart = () => {
-    const canvas = document.querySelector(".graph-container canvas") as HTMLCanvasElement | null;
-  
-    if (canvas) {
-      const imageURL = canvas.toDataURL("image/png");
-      const link = document.createElement("a");
-      link.href = imageURL;
-      link.download = `${chartTitle}.png`; 
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } else {
-      console.error("Chart canvas not found!");
-    }
-  };
 
   useEffect(() => {
     const loadData = async () => {

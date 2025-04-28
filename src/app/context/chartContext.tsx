@@ -34,6 +34,9 @@ interface ChartContextProps {
 
   chartHistoryList: any[];
   setChartHistoryList: React.Dispatch<React.SetStateAction<any>[]>;
+
+  isNew: boolean;
+  setIsNew: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const ChartContext = createContext<ChartContextProps | undefined>(undefined);
@@ -60,6 +63,8 @@ export const ChartProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const [archivedList, setArchivedList] = useState<any[]>([]);
   const [chartHistoryList, setChartHistoryList] = useState<any[]>([]);
+
+  const [isNew, setIsNew] = useState<boolean>(true);
 
 
   return (
@@ -93,7 +98,9 @@ export const ChartProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         activeChart,
         setActiveChart,
         previousQuery,
-        setPreviousQuery
+        setPreviousQuery,
+        isNew,
+        setIsNew
       }}
     >
       {children}
