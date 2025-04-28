@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
 import { IoMdArrowDropdown } from "react-icons/io";
+import { useChartContext } from "@/app/context/chartContext";
 
-interface AssetPickerProps {
-  selectedAsset: string | null;
-  setSelectedAsset: React.Dispatch<React.SetStateAction<string | null>>;
-  assets: { id: string; asset_name: string }[]; 
-}
-
-const AssetPicker = ({ selectedAsset, setSelectedAsset, assets }: AssetPickerProps) => {
+const AssetPicker = () => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
+
+  const {
+    setSelectedAsset,
+    selectedAsset,
+    assets
+  } = useChartContext();
+  
 
   const toggleDropdown = () => {
     setDropdownOpen(!isDropdownOpen);
@@ -24,7 +26,7 @@ const AssetPicker = ({ selectedAsset, setSelectedAsset, assets }: AssetPickerPro
       <div className="dropdown">
         <button onClick={toggleDropdown} className="dropbtn">
           {selectedAsset
-            ? assets.find((asset) => asset.id === selectedAsset)?.asset_name || "Unknown Asset"
+            ? assets.find((asset) => asset.id === selectedAsset)?.name || "Unknown Asset"
             : "Select an asset"} 
           <IoMdArrowDropdown />
         </button>
@@ -33,7 +35,7 @@ const AssetPicker = ({ selectedAsset, setSelectedAsset, assets }: AssetPickerPro
             {assets.length > 0 ? (
               assets.map((asset) => (
                 <a key={asset.id} onClick={() => handleAssetSelect(asset)}>
-                  {asset.asset_name}
+                  {asset.name}
                 </a>
               ))
             ) : (

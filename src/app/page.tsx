@@ -1,14 +1,33 @@
 "use client";
-import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import ChartTabs from "./components/historical-data/chartTabs";
-import AssetPicker from "./components/assetPicker";
+import SideBar from "./components/sidebar/sideBar";
+import ChartInput from "./components/charts/chartInput";
+import Charts from "./components/charts/Charts";
+import { useChartContext } from "./context/chartContext";
 
 export default function Home() {
-  const [selectedAsset, setSelectedAsset] = useState<string | null>(null);
-  const [assets, setAssets] = useState<{ id: string; name: string }[]>([]);
+  const {
+    selectedAsset,
+    setSelectedAsset,
+    assets,
+    setAssets,
+    loading,
+    setLoading,
+    chartData,
+    setChartData,
+    chartOptions,
+    setChartOptions,
+    chartType,
+    setChartType,
+    chartTitle,
+    setChartTitle,
+    chartDate,
+    setChartDate,
+    isSaved,
+    setIsSaved,
+  } = useChartContext(); 
+  
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
 
   const fetchAssets = async () => {
     try {
@@ -17,8 +36,8 @@ export default function Home() {
         throw new Error("Failed to fetch assets");
       }
       const responseData = await response.json();
-      console.log("Fetched data:", responseData); 
-      setAssets(responseData.data); 
+      console.log("Fetched data:", responseData);
+      setAssets(responseData.data);
     } catch (error: any) {
       console.error("Fetch error:", error);
       setError(error.message);
@@ -29,7 +48,7 @@ export default function Home() {
 
   useEffect(() => {
     fetchAssets();
-  }, []);
+  }, []); 
 
   useEffect(() => {
     if (selectedAsset) {
@@ -38,33 +57,14 @@ export default function Home() {
   }, [selectedAsset]);
 
   return (
-    <>
-      <header>
-        <Image
-          className="logo"
-          alt="Twilligent logo"
-          src="/logo.png"
-          width={300}
-          height={300}
-          loading="lazy"
-        />
-        <AssetPicker
-          setSelectedAsset={setSelectedAsset}
-          selectedAsset={selectedAsset}
-          assets={assets || []}
-          />
-      </header>
-      <main>
-        {loading ? (
-          <h1>Loading assets...</h1>
-        ) : error ? (
-          <h1>Error: {error}</h1>
-        ) : selectedAsset ? (
-          <ChartTabs key={selectedAsset} selectedAsset={selectedAsset}/>
-        ) : (
-          <h1>Please select an asset</h1>
-        )}
-      </main>
-    </>
+    <main>
+      <div className="sidebar-container">
+        <SideBar />
+      </div>
+
+      <div className="chart-containers">
+        <Charts />
+      </div>
+    </main>
   );
 }

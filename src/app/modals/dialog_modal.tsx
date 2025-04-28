@@ -22,13 +22,11 @@ const Dialog: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
   );
 };
 
-
 const SmallDialog: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
   if (!isOpen) return null;  
   return (
     <div className="sm-dialog-overlay">
       <div className="sm-dialog-content">
-        <button className="close-btn" onClick={onClose}><IoMdClose/></button>
         {children} 
       </div>
     </div>

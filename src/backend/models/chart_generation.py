@@ -6,7 +6,7 @@ load_dotenv("../../.env.local")
 my_api_key = os.getenv("GEMINI_API_KEY")
 
 #MANUAL
-def manual_chart_builder(nums, sensor_name="Unknown Sensor"):
+def manual_chart_builder(nums, query, sensor_name):
     labels = []
     data = []
 
@@ -32,6 +32,17 @@ def manual_chart_builder(nums, sensor_name="Unknown Sensor"):
             }]
         },
         "options": {
+            "plugins": {
+                "title": {
+                "display": True,
+                "text": query,
+            "font": {
+                "size": 15,         
+                "weight": "bold"  
+            },
+                "color": "white"
+       }
+            },
             "scales": {  
                 "x": {
                     "type": "time",
@@ -51,5 +62,5 @@ def manual_chart_builder(nums, sensor_name="Unknown Sensor"):
     "chartData": chart_config["data"],
     "chartOptions": chart_config["options"],
     "chartType": chart_config["type"],
-    "llmTitle": "Test"
+    "llmTitle": query,
     }

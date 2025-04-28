@@ -1,5 +1,5 @@
 export const handleChartRequest = async (
-  query: string | number[],
+  query: string,
   selectedAsset: string,
   previousQuery: string[],
   setLoading: React.Dispatch<React.SetStateAction<boolean>>,
@@ -7,7 +7,7 @@ export const handleChartRequest = async (
   setChartData: React.Dispatch<React.SetStateAction<any>>,
   setChartOptions: React.Dispatch<React.SetStateAction<any>>,
   setChartType: React.Dispatch<React.SetStateAction<any>>,
-  setChartTitle?: (title: string) => void
+  setChartTitle: (title: string) => void,
 ) => {
   setLoading(true);
   setResponse(null);
@@ -35,37 +35,53 @@ export const handleChartRequest = async (
 
     if (!res.ok) {
       setResponse({ error: "Unexpected error occurred." });
-    } else {
-      if (data && data.success === false && typeof data.message === "string")
-        {
-        setResponse({ message: data.message });
-        setChartData(null);
-        setChartOptions(null);
-        setChartType(null);
-        if (setChartTitle) setChartTitle("Notice");
-      } else if (data.text) {
-        setResponse({ type: "text", content: data.text });
-        setChartData(null);
-        setChartOptions(null);
-        setChartType(null);
-        if (setChartTitle) setChartTitle("Summary");
-      } else if (data.chartData && data.chartOptions && data.chartType) {
-        setChartData(data.chartData);
-        setChartOptions(data.chartOptions);
-        setChartType(data.chartType);
-        setResponse({ type: "chart", ...data });
-    
-        if (setChartTitle && data.llmTitle) {
-          setChartTitle(data.llmTitle);
-        }
-      } else {
-        setResponse({ error: "Unexpected processing. Please try again!" });
-      }
+      return null;
     }
-    
+
+    if (data && data.success === false && typeof data.message === "string") {
+      setResponse({ message: data.message });
+      setChartData(null);
+      setChartOptions(null);
+      setChartType(null);
+      if (setChartTitle) setChartTitle("Notice");
+      return null;
+    }
+
+    if (data.text) {
+      setResponse({ type: "text", content: data.text });
+      setChartData(null);
+      setChartOptions(null);
+      setChartType(null);
+      if (setChartTitle) setChartTitle("Summary");
+      return null;
+    }
+
+    if (data.chartData && data.chartOptions && data.chartType) {
+      setChartData(data.chartData);
+      setChartOptions(data.chartOptions);
+      setChartType(data.chartType);
+
+      setResponse({ type: "chart", ...data });
+
+      if (setChartTitle && data.llmTitle) {
+        setChartTitle(data.llmTitle);
+      }
+
+      return {
+        chartData: data.chartData,
+        chartOptions: data.chartOptions,
+        chartType: data.chartType,
+        chartTitle: data.llmTitle || "Untitled",
+      };
+    }
+
+    setResponse({ error: "Unexpected processing. Please try again!" });
+    return null;
+
   } catch (error) {
     console.error("Error fetching data:", error);
     setResponse({ error: "An error occurred while processing your request." });
+    return null;
   } finally {
     setLoading(false);
   }
