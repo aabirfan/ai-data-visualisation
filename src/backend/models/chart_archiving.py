@@ -36,7 +36,13 @@ def get_chart_data(asset_id):
 
 def remove_saved_data(timestamp):
     try:
-        collection.delete_one({"date": timestamp})
+        result = collection.delete_one({"date": timestamp})
+        
+        if result.deleted_count > 0:
+            print(f"Successfully removed {result.deleted_count} chart(s) with the timestamp {timestamp}")
+        else:
+            print(f"No chart found with the timestamp {timestamp}")
+    
     except PyMongoError as e:
         print(f"MongoDB error: {e}")
     except Exception as e:
@@ -86,15 +92,3 @@ def get_chart_history(asset_id):
         
     except Exception as e:
         return {"error": str(e)} 
-    
-def clear_chart_history(asset_id):
-    try:
-        result = chart_history_collection.delete_many({"asset_id": asset_id})
-        print(f"Deleted {result.deleted_count} chart history entries for asset_id: {asset_id}")
-    except PyMongoError as e:
-        print(f"MongoDB error: {e}")
-        raise
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-        raise
-

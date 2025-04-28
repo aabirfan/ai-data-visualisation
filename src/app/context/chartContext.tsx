@@ -37,9 +37,6 @@ interface ChartContextProps {
 
   isNew: boolean;
   setIsNew: React.Dispatch<React.SetStateAction<boolean>>;
-
-  isClearModalOpen: boolean;
-  setIsClearModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const ChartContext = createContext<ChartContextProps | undefined>(undefined);
@@ -68,9 +65,6 @@ export const ChartProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [chartHistoryList, setChartHistoryList] = useState<any[]>([]);
 
   const [isNew, setIsNew] = useState<boolean>(true);
-
-  const [isClearModalOpen, setIsClearModalOpen] = useState<boolean>(false);
-
 
 
   return (
@@ -106,9 +100,7 @@ export const ChartProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         previousQuery,
         setPreviousQuery,
         isNew,
-        setIsNew,
-        isClearModalOpen,
-        setIsClearModalOpen
+        setIsNew
       }}
     >
       {children}
