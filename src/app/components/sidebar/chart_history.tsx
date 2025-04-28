@@ -125,6 +125,7 @@ export default function ChartHistory() {
           )}
         </div>
       )}
+      
       <SmallDialog isOpen={isClearModalOpen} onClose={() => setIsClearModalOpen(false)}>
   <div className="modal-title">
   <h2><strong>Are you sure you want to clear chart<br /> history?</strong></h2>
