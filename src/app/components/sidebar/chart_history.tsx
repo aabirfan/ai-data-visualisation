@@ -92,17 +92,17 @@ export default function ChartHistory() {
 
   return (
     <div className="lists-container">
-      <div className="list-title" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-    <LiaHistorySolid className="list-title-icon" />
-    <h1>Chart History</h1>
+  <div className="list-title-wrapper">
+    <div className="list-title-left">
+      <LiaHistorySolid className="list-title-icon" />
+      <h1>Chart History</h1>
+    </div>
+    {selectedAsset && (
+      <button onClick={() => setIsClearModalOpen(true)} className="clear-history-button">
+        Clear
+      </button>  
+    )}
   </div>
-  {selectedAsset && (
-    <button onClick={() => setIsClearModalOpen(true)} className="clear-history-button">
-    Clear
-  </button>  
-  )}
-</div>
       {error ? (
         <p>Error: {error}</p>
       ) : (
@@ -125,6 +125,7 @@ export default function ChartHistory() {
           )}
         </div>
       )}
+
       <SmallDialog isOpen={isClearModalOpen} onClose={() => setIsClearModalOpen(false)}>
   <div className="modal-title">
   <h2><strong>Are you sure you want to clear chart<br /> history?</strong></h2>

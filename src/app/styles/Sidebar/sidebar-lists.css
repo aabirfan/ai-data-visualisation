@@ -77,3 +77,17 @@
     border-radius: 7px;
     background-color: #585858;
 }
+
+.list-title-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+  
+  .list-title-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
