@@ -1,4 +1,4 @@
-from .prompt_history import get_prompt_history
+from .chart_archiving import get_chart_history
 from utils.sensor_parser import get_sensor_types, get_recent_sensors
 from utils.date_parser import get_date_range
 import google.generativeai as genai
@@ -7,24 +7,33 @@ import os
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 model = genai.GenerativeModel("models/gemini-1.5-flash")
 
-
 def get_suggested_prompts(asset_id: str) -> list[str]:
     try:
-        history_entries = get_prompt_history(asset_id)
+        history_entries = get_chart_history(asset_id)
 
         if history_entries:
-            history_text = "\n".join(f"{i+1}. {entry['query']}" for i, entry in enumerate(history_entries))
+            history_lines = []
+            for entry in history_entries:
+                title = entry.get('title')
+                if title:
+                    history_lines.append(title)
+                
+                if 'previousQueries' in entry and entry['previousQueries']:
+                    history_lines.extend(entry['previousQueries'])
+
+            history_text = "\n".join(f"{i+1}. {line}" for i, line in enumerate(history_lines))
+
             prompt = f"""
 You are an assistant for a chart generation tool.
 
-Suggest 3 simple and clear chart prompts based on the user's previous queries.
+Suggest 3 simple and clear chart prompts based on the user's previous charts and queries.
 Each suggestion should:
 - Be short and under 15 words
 - Avoid technical terms or abstract language
 - Be something a beginner would understand
 - Avoid repeating ideas already seen in the history
 
-Prompt History:
+Chart and Query History (each line is either a chart title or a previous user query):
 {history_text}
 
 Return exactly 3 suggestions. No numbering or bullet points.
@@ -43,7 +52,7 @@ Return exactly 3 suggestions. No numbering or bullet points.
             prompt = f"""
 You are an assistant for a chart generation tool.
 
-The user has not submitted any queries yet.
+The user has not submitted any charts yet.
 
 Here is a list of available sensor names:
 {sensor_list}

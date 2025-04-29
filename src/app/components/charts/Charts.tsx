@@ -162,17 +162,29 @@ const Charts: React.FC = () => {
             />
           )}
   
-        {(showSuggestions && isNew) && (
-          <PromptSuggestions
-            selectedAsset={selectedAsset}
-            isNew={isNew}
-            onSubmit={(query) => {
-              setShowSuggestions(false); 
-              //savePromptHistory(query);
-              handleChartRequest(query, selectedAsset, previousQuery, setLoading, setResponse, setChartData, setChartOptions, setChartType, setChartTitle);
-            }}
-          />
-        )}
+  {(showSuggestions && isNew) && (
+  <PromptSuggestions
+    selectedAsset={selectedAsset}
+    isNew={isNew}
+    onSubmit={async (query) => {
+      setPreviousQuery([query]);
+      setUserQuery(query);
+      setShowSuggestions(false);
+      setIsNew(false);
+
+      const newChart = await handleChartRequest(
+        query, selectedAsset, [query], setLoading, setResponse, setChartData, setChartOptions, setChartType, setChartTitle
+      );
+
+      if (newChart.chartData && newChart.chartOptions && newChart.chartType && newChart.chartTitle) {
+        addChartHistory(
+          newChart.chartData, newChart.chartOptions, newChart.chartType, newChart.chartTitle, selectedAsset, [query]
+        );
+      }
+    }}
+  />
+)}
+
 
       <SmallDialog isOpen={isSmodalOpen} onClose={closeSModal}>
           <div className="modal-title">
