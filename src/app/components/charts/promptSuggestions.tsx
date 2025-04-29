@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import "../../styles/promptSuggestions.css";
 
 interface Props {
@@ -10,26 +10,25 @@ interface Props {
 export default function PromptSuggestions({ selectedAsset, isNew, onSubmit }: Props) {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const hasFetched = useRef(false);
-  
-  useEffect(() => {
-    async function fetchSuggestions() {
-      if (!selectedAsset || hasFetched.current) return;
-      hasFetched.current = true;
 
+  useEffect(() => {
+    if (!selectedAsset) return;  
+
+    async function fetchSuggestions() {
       try {
         setLoading(true);
         const res = await fetch(`http://localhost:8000/api/prompt-suggestions/?asset_id=${selectedAsset}`);
         const data = await res.json();
         setSuggestions(data.suggestions);
       } catch (err) {
+        console.error("Error fetching suggestions:", err);
       } finally {
         setLoading(false);
       }
     }
 
     fetchSuggestions();
-  }, [selectedAsset]);
+  }, [selectedAsset]);  
 
   async function handleSuggestionClick(suggestion: string) {
     try {
@@ -39,6 +38,7 @@ export default function PromptSuggestions({ selectedAsset, isNew, onSubmit }: Pr
         body: JSON.stringify({ query: suggestion, asset_id: selectedAsset })
       });
     } catch (err) {
+      console.error("Error saving prompt:", err);
     }
 
     onSubmit(suggestion); 

@@ -25,7 +25,6 @@ from models.chart_archiving import addArchivedChart
 from models.chart_archiving import get_chart_data
 from models.chart_archiving import remove_saved_data, get_chart_history, addChartHistory, clear_chart_history
 
-from models.prompt_history import add_prompt_history, get_prompt_history, clear_prompt_history
 from models.prompt_suggestions import get_suggested_prompts
 
 from utils.manual_query_processor import process_manual_query
@@ -165,23 +164,6 @@ async def remove_saved_chart(data: removeData, request: Request):
     post_id = data.timestamp
     remove_saved_data(post_id)
     return JSONResponse(content={"data": post_id})   
-
-@app.post("/api/save-prompt/")
-@limiter.limit("20/minute")
-async def save_prompt(data: QueryRequest, request: Request):
-    add_prompt_history(data.query, data.asset_id)  
-    return JSONResponse(content={"message": "Prompts saved"})
-
-@app.post("/api/get-prompt-history/")
-@limiter.limit("20/minute")
-async def fetch_prompt_history(data: asset_req, request: Request):
-    history = get_prompt_history(data.asset_id)
-    return JSONResponse(content={"data": history}, media_type="application/json")  
-
-@app.post("/api/clear-prompt-history/")
-@limiter.limit("20/minute")
-async def delete_prompt_history(data: asset_req, request: Request):
-    return clear_prompt_history(data.asset_id)
 
 @app.get("/assets")
 @limiter.limit("3/minute")
