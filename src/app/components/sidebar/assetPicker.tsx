@@ -8,7 +8,18 @@ const AssetPicker = () => {
   const {
     setSelectedAsset,
     selectedAsset,
-    assets
+    assets,
+    setChartData,
+    setChartOptions,
+    setChartType,
+    setChartTitle,
+    setActiveChart,
+    setPreviousQuery,
+    setIsSaved,
+    setIsNew,
+
+    
+
   } = useChartContext();
   
 
@@ -19,6 +30,14 @@ const AssetPicker = () => {
   const handleAssetSelect = (asset: { id: string; name: string }) => {
     setSelectedAsset(asset.id);  
     setDropdownOpen(false);
+    setChartData(null);
+    setChartOptions(null);
+    setChartType("");
+    setChartTitle("");
+    setActiveChart(null);
+    setPreviousQuery([]);
+    setIsSaved(false);
+    setIsNew(true);
   };
 
   return (

@@ -87,6 +87,8 @@ const Charts: React.FC = () => {
     setPreviousQuery([]);
     setActiveChart(null);
     setIsSaved(false);
+    setShowSuggestions(true);
+    setIsNew(true);
   };
 
 
