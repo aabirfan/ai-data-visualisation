@@ -11,30 +11,52 @@ def get_suggested_prompts(asset_id: str) -> list[str]:
     try:
         history_entries = get_chart_history(asset_id)
 
+        sensor_names = get_recent_sensors(asset_id)
+        if not sensor_names:
+            sensor_names = get_sensor_types()
+        sensor_list = "\n- " + "\n- ".join(sensor_names[:30])
+
+        start_date, end_date = get_date_range(asset_id)
+        date_range_text = (
+            f"Available data ranges from {start_date.strftime('%d %B %Y')} to {end_date.strftime('%d %B %Y')}."
+            if start_date and end_date else "Unknown date range."
+        )
+
         if history_entries:
             history_lines = []
+
             for entry in history_entries:
                 title = entry.get('title')
                 if title:
                     history_lines.append(title)
-                
                 if 'previousQueries' in entry and entry['previousQueries']:
                     history_lines.extend(entry['previousQueries'])
 
-            history_text = "\n".join(f"{i+1}. {line}" for i, line in enumerate(history_lines))
+            trimmed_history = history_lines[-20:]
+            history_text = "\n".join(f"{i+1}. {line}" for i, line in enumerate(trimmed_history))
 
             prompt = f"""
 You are an assistant for a chart generation tool.
 
 Suggest 3 simple and clear chart prompts based on the user's previous charts and queries.
+
+Chart and Query History (each line is either a chart title or a previous user query):
+{history_text}
+
+Additional context:
+- Available sensors:
+{sensor_list}
+
+- {date_range_text}
+
+The system supports line charts, bar charts, pie charts (distributions), and daily/weekly averages.
+
 Each suggestion should:
 - Be short and under 15 words
 - Avoid technical terms or abstract language
 - Be something a beginner would understand
 - Avoid repeating ideas already seen in the history
-
-Chart and Query History (each line is either a chart title or a previous user query):
-{history_text}
+- If unsure, base suggestions on the available sensors and date range
 
 Return exactly 3 suggestions. No numbering or bullet points.
 """
