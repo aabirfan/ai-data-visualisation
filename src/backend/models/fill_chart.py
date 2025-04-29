@@ -127,22 +127,33 @@ def fill_llm_chart_data(chart_config, sensor_data, sensor_label=None, interval_m
             chart_config["data"]["datasets"] = []
             chart_config["data"]["labels"] = []
 
+            colors = [
+                "rgb(0, 243, 255)", "rgb(255, 99, 132)", "rgb(255, 206, 86)",
+                "rgb(153, 102, 255)", "rgb(255, 159, 64)", "rgb(54, 162, 235)", "rgb(201, 203, 207)"
+            ]
+            color_index = 0
+
+
             for sensor_name, date_data in grouped_data.items():
                 daily_points = sorted([
                     {"x": date, "y": list(values.values())[0]}
                     for date, values in date_data.items()
                 ], key=lambda x: x["x"])
 
+                color = colors[color_index % len(colors)]
+                color_index += 1
+
                 dataset = {
                     "label": sensor_name,
                     "data": daily_points,
-                    "borderColor": "rgb(54, 162, 235)",
-                    "backgroundColor": "rgb(54, 162, 235)",
+                    "borderColor": color,
+                    "backgroundColor": color,
                     "fill": False,
                     "tension": 0,
                     "pointRadius": 4,
                     "spanGaps": True
                 }
+
 
                 chart_config["data"]["datasets"].append(dataset)
                 chart_config["data"]["labels"] = [pt["x"] for pt in daily_points]
