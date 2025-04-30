@@ -129,7 +129,7 @@ export default function ChartHistory() {
   return (
     <div className="lists-container">
       <div className="list-title-wrapper">
-        <div className="list-title-left">
+        <div className="list-title">
           <LiaHistorySolid className="list-title-icon" />
           <h1>Chart History</h1>
         </div>
