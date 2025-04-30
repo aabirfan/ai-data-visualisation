@@ -188,8 +188,8 @@
     position: absolute;
     display: flex;
     flex-direction: column;
-    width: 60%;
-    margin-bottom: 150px;
+    width: 50%;
+    margin-bottom: -150px;
 }
 
 .query-box {

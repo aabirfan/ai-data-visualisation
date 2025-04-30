@@ -17,8 +17,8 @@ const AssetPicker = () => {
     setPreviousQuery,
     setIsSaved,
     setIsNew,
-
-    
+    setResponse,
+    setShowSuggestions
 
   } = useChartContext();
   
@@ -38,6 +38,8 @@ const AssetPicker = () => {
     setPreviousQuery([]);
     setIsSaved(false);
     setIsNew(true);
+    setResponse(null);
+    setShowSuggestions(true);
   };
 
   return (

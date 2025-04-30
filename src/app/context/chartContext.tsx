@@ -40,6 +40,14 @@ interface ChartContextProps {
 
   isClearModalOpen: boolean;
   setIsClearModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+
+  response: any | null;
+  setResponse: React.Dispatch<React.SetStateAction<any | null>>;
+
+  showSuggestions: boolean;
+  setShowSuggestions: React.Dispatch<React.SetStateAction<boolean>>;
+
+
 }
 
 const ChartContext = createContext<ChartContextProps | undefined>(undefined);
@@ -61,6 +69,8 @@ export const ChartProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [isReply, setIsReply] = useState<boolean>(false);
   const chartRef = useRef<HTMLCanvasElement | null>(null);
   const [activeChart, setActiveChart] = useState<any | null>(null); 
+  const [response, setResponse] = useState<any | null>(null);
+
 
   // LIST STATES
 
@@ -70,6 +80,9 @@ export const ChartProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [isNew, setIsNew] = useState<boolean>(true);
 
   const [isClearModalOpen, setIsClearModalOpen] = useState<boolean>(false);
+
+  const [showSuggestions, setShowSuggestions] = useState<boolean>(true);
+
 
 
 
@@ -108,7 +121,12 @@ export const ChartProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         isNew,
         setIsNew,
         isClearModalOpen,
-        setIsClearModalOpen
+        setIsClearModalOpen,
+        response,
+        setResponse,
+        showSuggestions,
+        setShowSuggestions,
+
       }}
     >
       {children}

@@ -13,10 +13,10 @@ import { useRemoveGraph } from "../../utils/archive_graph";
 import { SmallDialog } from "@/app/modals/dialog_modal";
 
 const Charts: React.FC = () => {
-  const [response, setResponse] = useState<any | null>(null);
+  const { response, setResponse } = useChartContext();
   const [isModalOpen, setModalOpen] = useState(false);
   const [isSmodalOpen, setSmodalOpen] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(true);
+  const { showSuggestions, setShowSuggestions } = useChartContext();
   const [userQuery, setUserQuery] = useState<string>(""); 
 
   const {
@@ -89,6 +89,7 @@ const Charts: React.FC = () => {
     setIsSaved(false);
     setShowSuggestions(true);
     setIsNew(true);
+    setResponse(null);
   };
 
 
