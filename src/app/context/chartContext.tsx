@@ -47,6 +47,10 @@ interface ChartContextProps {
   showSuggestions: boolean;
   setShowSuggestions: React.Dispatch<React.SetStateAction<boolean>>;
 
+  suggestionCache: Record<string, string[]>;
+  setSuggestionCache: React.Dispatch<React.SetStateAction<Record<string, string[]>>>;
+
+
 
 }
 
@@ -82,6 +86,8 @@ export const ChartProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [isClearModalOpen, setIsClearModalOpen] = useState<boolean>(false);
 
   const [showSuggestions, setShowSuggestions] = useState<boolean>(true);
+  const [suggestionCache, setSuggestionCache] = useState<Record<string, string[]>>({});
+
 
 
 
@@ -126,6 +132,9 @@ export const ChartProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         setResponse,
         showSuggestions,
         setShowSuggestions,
+        suggestionCache,
+        setSuggestionCache,
+
 
       }}
     >
