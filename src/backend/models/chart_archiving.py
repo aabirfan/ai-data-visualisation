@@ -49,7 +49,6 @@ def remove_saved_data(timestamp):
 def addChartHistory(chart_data):
     try:
         chart_dict = chart_data
-        print(f"Received chart data: {chart_dict}")
         result = chart_history_collection.insert_one(chart_dict)
         print(f"Chart archived successfully with ID: {result.inserted_id}")
         asset_id = chart_dict['asset_id']
