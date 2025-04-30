@@ -52,7 +52,7 @@ Additional context:
 The system supports line charts, bar charts, pie charts (distributions), and daily/weekly averages.
 
 Each suggestion should:
-- Be short and under 15 words
+- Be short and under 12 words
 - Avoid technical terms or abstract language
 - Be something a beginner would understand
 - Avoid repeating ideas already seen in the history
@@ -87,7 +87,7 @@ Based on these sensors and available time range, suggest 3 beginner-friendly cha
 Each suggestion should:
 - Use specific sensor names from the list, but **do not wrap them in quotes**
 - Include realistic and recent dates from the range if possible
-- Be short (under 15 words)
+- Be short (under 12 words)
 - Focus on trends, comparisons, or breakdowns
 
 Return exactly 3 suggestions. No numbering or bullet points.

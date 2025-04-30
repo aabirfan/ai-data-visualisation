@@ -103,7 +103,7 @@ async def process_query(query_request: PromptRequest, request: Request):
         return process_llm_pipeline(query_request.query, query_request.asset_id, query_request.previousQuery, isReply=True)
 
     #PIPELINE 3
-    return process_llm_pipeline(query_request.query, query_request.asset_id, previous_prompt=None, isReply=False)
+    return process_llm_pipeline(query_request.query, query_request.asset_id, previous_prompts=None, isReply=False)
 
 
 @app.post("/save_chart")

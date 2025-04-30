@@ -111,8 +111,7 @@ const Charts: React.FC = () => {
               title="Edit an existing chart"
               isNew={isNew}
               onSubmit={async (query) => {  
-           
-                setPreviousQuery([query]);
+                setPreviousQuery((prev) => [...prev, query]);
                 setUserQuery(query);
                 setShowSuggestions(false);
 
@@ -140,7 +139,7 @@ const Charts: React.FC = () => {
               onSubmit={async (query) => {
                 
               
-                setPreviousQuery([query]);
+                setPreviousQuery((prev) => [...prev, query]);
                 setUserQuery(query);
                 setShowSuggestions(false);
                 setIsNew(false)
@@ -169,7 +168,7 @@ const Charts: React.FC = () => {
     selectedAsset={selectedAsset}
     isNew={isNew}
     onSubmit={async (query) => {
-      setPreviousQuery([query]);
+      setPreviousQuery((prev) => [...prev, query]);
       setUserQuery(query);
       setShowSuggestions(false);
       setIsNew(false);
