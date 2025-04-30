@@ -56,7 +56,6 @@ export default function ChartHistory() {
     setIsNew(false);
   }
 
-
   useEffect(() => {
     const loadHistoryData = async () => {
       if (selectedAsset) {
@@ -90,19 +89,56 @@ export default function ChartHistory() {
     }
   };
 
+  const Grouped: Record<string, any[]> = chartHistoryList.reduce((acc, chart) => {
+    const today = new Date().toLocaleDateString();
+    
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayString = yesterday.toLocaleDateString();
+
+    const lastWeek = new Date();
+    lastWeek.setDate(lastWeek.getDate() - 7);
+    const lastWeekString = lastWeek.toLocaleDateString();
+
+    let dateKey = new Date(chart.date).toLocaleDateString();
+
+    const chartDate = new Date(chart.date);
+
+    console.log(dateKey); 
+
+    if (dateKey === today) {
+      dateKey = "Today";
+    } else if (dateKey === yesterdayString) {
+      dateKey = "Yesterday";
+    } else if (chartDate > lastWeek && chartDate < yesterday) {
+      dateKey = "Previous 7 days";
+    } else {
+      dateKey = "Earlier";
+    }
+
+    console.log(dateKey);
+
+    
+    if (!acc[dateKey]) {
+      acc[dateKey] = [];
+    }
+    acc[dateKey].push(chart);
+    return acc;
+  }, {});  
+
   return (
     <div className="lists-container">
-  <div className="list-title-wrapper">
-    <div className="list-title-left">
-      <LiaHistorySolid className="list-title-icon" />
-      <h1>Chart History</h1>
-    </div>
-    {selectedAsset && (
-      <button onClick={() => setIsClearModalOpen(true)} className="clear-history-button">
-        Clear
-      </button>  
-    )}
-  </div>
+      <div className="list-title-wrapper">
+        <div className="list-title-left">
+          <LiaHistorySolid className="list-title-icon" />
+          <h1>Chart History</h1>
+        </div>
+        {selectedAsset && (
+          <button onClick={() => setIsClearModalOpen(true)} className="clear-history-button">
+            Clear
+          </button>  
+        )}
+      </div>
       {error ? (
         <p>Error: {error}</p>
       ) : (
@@ -111,35 +147,42 @@ export default function ChartHistory() {
             <p>No chart history</p>
           ) : (
             <ul>
-            {[...chartHistoryList].reverse().map((chart, index) => (
-              <li key={index}>
-                <button
-                  className={`archived-chart-button ${activeChart === chart ? 'active' : ''}`} 
-                  onClick={() => handleChartClick(chart)}
-                >
-                  <h2>{chart.title}</h2>
-                </button>
-              </li>
-            ))}
-          </ul>
+              {Object.entries(Grouped).reverse().map(([dateLabel, charts]) => (
+                <div key={dateLabel} className="chart-group">
+                  <h4 className='date-divider'>{dateLabel}</h4>
+                  <ul>
+                    {charts.map((chart, index) => (
+                      <li key={index}>
+                        <button
+                          className={`archived-chart-button ${activeChart === chart ? 'active' : ''}`}
+                          onClick={() => handleChartClick(chart)}
+                        >
+                          <h2>{chart.title}</h2>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </ul>
           )}
         </div>
       )}
 
       <SmallDialog isOpen={isClearModalOpen} onClose={() => setIsClearModalOpen(false)}>
-  <div className="modal-title">
-  <h2><strong>Are you sure you want to clear chart<br /> history?</strong></h2>
-  </div>
-  <div className="cfm-btn">
-    <button onClick={() => setIsClearModalOpen(false)}>No</button>
-    <button onClick={async () => {
-      await clearChartHistory();
-      setIsClearModalOpen(false);
-    }}>
-      Yes, clear
-    </button>
-  </div>
-</SmallDialog>
+        <div className="modal-title">
+          <h2><strong>Are you sure you want to clear chart<br /> history?</strong></h2>
+        </div>
+        <div className="cfm-btn">
+          <button onClick={() => setIsClearModalOpen(false)}>No</button>
+          <button onClick={async () => {
+            await clearChartHistory();
+            setIsClearModalOpen(false);
+          }}>
+            Yes, clear
+          </button>
+        </div>
+      </SmallDialog>
     </div>
   );
 }
