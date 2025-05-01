@@ -16,7 +16,7 @@ model = genai.GenerativeModel(
     "Ensure the structure closely resembles the provided reference chart format. "
     "Y-axis scale must always be dynamic, adapting to the visible data. Do not hardcode min/max values. "
     "Use `beginAtZero: false`, and avoid using `suggestedMin` or `suggestedMax` unless they reflect the visible data range. "
-    "Include a descriptive and dynamic `plugins.title.text` based on the user's query and sensor name. "
+    "Include a descriptive and dynamic `plugins.title.text` based on the user's query and sensor name. Do not include 'reply' in title."
     "Do not include any explanations, extra text, or markdown. "
     "Use placeholders (`[]`) for labels and data to be filled dynamically later. "
 

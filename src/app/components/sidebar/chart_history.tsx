@@ -151,7 +151,7 @@ export default function ChartHistory() {
                 <div key={dateLabel} className="chart-group">
                   <h4 className='date-divider'>{dateLabel}</h4>
                   <ul>
-                    {charts.map((chart, index) => (
+                    {charts.reverse().map((chart, index) => (
                       <li key={index}>
                         <button
                           className={`archived-chart-button ${activeChart === chart ? 'active' : ''}`}
