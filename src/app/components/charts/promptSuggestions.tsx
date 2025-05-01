@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "../../styles/promptSuggestions.css";
+import { useChartContext } from "@/app/context/chartContext";
+
 
 interface Props {
   selectedAsset: string;
@@ -10,25 +12,33 @@ interface Props {
 export default function PromptSuggestions({ selectedAsset, isNew, onSubmit }: Props) {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const { suggestionCache, setSuggestionCache } = useChartContext();
+
 
   useEffect(() => {
-    if (!selectedAsset) return;  
-
+    if (!selectedAsset) return;
+  
+    if (suggestionCache[selectedAsset]) {
+      setSuggestions(suggestionCache[selectedAsset]);
+      return;
+    }
+  
     async function fetchSuggestions() {
       try {
         setLoading(true);
         const res = await fetch(`http://localhost:8000/api/prompt-suggestions/?asset_id=${selectedAsset}`);
         const data = await res.json();
         setSuggestions(data.suggestions);
+        setSuggestionCache(prev => ({ ...prev, [selectedAsset]: data.suggestions }));
       } catch (err) {
         console.error("Error fetching suggestions:", err);
       } finally {
         setLoading(false);
       }
     }
-
+  
     fetchSuggestions();
-  }, [selectedAsset]);  
+  }, [selectedAsset]);
 
   async function handleSuggestionClick(suggestion: string) {
     try {

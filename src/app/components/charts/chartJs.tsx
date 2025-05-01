@@ -50,7 +50,7 @@ const ChartJs: React.FC<ChartJsCodeRendererProps> = ({
 
   const errorText = textResponse || chartError;
 
-  if (errorText) {
+  if (errorText && !chartData) {
     const sadKeywords = ["no data", "not found", "please include", "sorry"];
     const isSad = sadKeywords.some(keyword =>
       errorText.toLowerCase().includes(keyword)
