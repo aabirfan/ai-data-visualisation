@@ -47,8 +47,8 @@ export const handleChartRequest = async (
       return null;
     }
 
-    if (data.text) {
-      setResponse({ type: "text", content: data.text });
+    if (data.message) {
+      setResponse({ message: data.message });
       setChartData(null);
       setChartOptions(null);
       setChartType(null);
