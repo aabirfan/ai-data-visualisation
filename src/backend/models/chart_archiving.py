@@ -55,8 +55,8 @@ def addChartHistory(chart_data):
         count = chart_history_collection.count_documents({"asset_id": asset_id})
         print(f"Total charts for asset_id {asset_id}: {count}")
 
-        if count > 10:
-            excess = count - 10
+        if count > 20:
+            excess = count - 20
             oldest_entries = chart_history_collection.find({"asset_id": asset_id}).sort("date", 1).limit(excess)
             
             ids_to_delete = [entry["_id"] for entry in oldest_entries]
