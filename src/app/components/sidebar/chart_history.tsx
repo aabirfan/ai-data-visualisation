@@ -126,10 +126,6 @@ export default function ChartHistory() {
     return acc;
   }, {});  
 
-  for (const key in Grouped) {
-    Grouped[key].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }
-
   return (
     <div className="lists-container">
       <div className="list-title-wrapper">
