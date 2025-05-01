@@ -117,7 +117,7 @@ const Charts: React.FC = () => {
                 setShowSuggestions(false);
 
                 const newChart = await handleChartRequest(
-                  "reply" + query, 
+                  "reply " + query, 
                   selectedAsset, 
                   previousQuery, 
                   setLoading,
@@ -128,7 +128,7 @@ const Charts: React.FC = () => {
                   setChartTitle
                 );
 
-                if (newChart.chartData && newChart.chartOptions && newChart.chartType && newChart.chartTitle) {
+                if (newChart.chartData !== null) {
                   addChartHistory(newChart.chartData, newChart.chartOptions, newChart.chartType, newChart.chartTitle, selectedAsset, previousQuery);
                 }
               }}
@@ -143,7 +143,7 @@ const Charts: React.FC = () => {
                 setPreviousQuery((prev) => [...prev, query]);
                 setUserQuery(query);
                 setShowSuggestions(false);
-                setIsNew(false)
+
 
                 const newChart = await handleChartRequest(
                   query, 
@@ -157,9 +157,11 @@ const Charts: React.FC = () => {
                   setChartTitle
                 );
 
-                if (newChart.chartData && newChart.chartOptions && newChart.chartType && newChart.chartTitle) {
+                if (newChart && newChart.chartData !== null) {
+                  setIsNew(false)
                   addChartHistory(newChart.chartData, newChart.chartOptions, newChart.chartType, newChart.chartTitle, selectedAsset, previousQuery);
                 }
+
               }}
             />
           )}

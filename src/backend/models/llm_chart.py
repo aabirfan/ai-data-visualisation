@@ -195,4 +195,5 @@ def generate_text_from_query_results(user_query, query_results, sensor_name):
 - Range: [{float(summary_stats.min)} → {float(summary_stats.max)}]
 """
     response = model2.generate_content(prompt)
-    return {"text": response.text.strip()}
+    return {
+        "message": response.text.strip()}
