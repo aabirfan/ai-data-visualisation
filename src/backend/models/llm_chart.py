@@ -113,7 +113,6 @@ Add a descriptive title in `plugins.title.text` based on:
 - the full list of sensors involved (e.g., “pH in vs pH out”)
 - and the intent behind the chart (trend, comparison, distribution, etc.)
 
-
 ### Reference Format:
 {json.dumps(reference_chart, indent=2)}
 """
