@@ -26,7 +26,11 @@ export default function PromptSuggestions({ selectedAsset, isNew, onSubmit }: Pr
     async function fetchSuggestions() {
       try {
         setLoading(true);
-        const res = await fetch(`http://localhost:8000/api/prompt-suggestions/?asset_id=${selectedAsset}`);
+        const res = await fetch("http://localhost:8000/api/prompt-suggestions/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ asset_id: selectedAsset })
+        });
         const data = await res.json();
         setSuggestions(data.suggestions);
         setSuggestionCache(prev => ({ ...prev, [selectedAsset]: data.suggestions }));
