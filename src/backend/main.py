@@ -172,9 +172,11 @@ async def get_assets(request: Request):
     print(assets)
     return JSONResponse(content={"data": assets})
 
-@app.get("/api/prompt-suggestions/")
+@app.post("/api/prompt-suggestions/")
 @limiter.limit("20/minute")
-async def suggest_prompts(asset_id: str, request: Request):
+async def suggest_prompts(request: Request):
+    data = await request.json()
+    asset_id = data.get("asset_id")
     suggestions = get_suggested_prompts(asset_id)
     return JSONResponse(content={"suggestions": suggestions})
 
