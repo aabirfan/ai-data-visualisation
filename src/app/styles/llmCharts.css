@@ -201,7 +201,9 @@
 
 .query-box p {
     padding: 10px;
-    border-radius: 10px;
+    border-top-left-radius: 15px;
+    border-bottom-left-radius: 15px;
+    border-bottom-right-radius: 15px;
     max-width: 20rem;
     justify-content: center;
     align-items: center;
