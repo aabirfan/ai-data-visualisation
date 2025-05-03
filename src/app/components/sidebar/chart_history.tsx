@@ -58,8 +58,14 @@ export default function ChartHistory() {
 
   useEffect(() => {
     const loadHistoryData = async () => {
+
+      const today = new Date()
+
       if (selectedAsset) {
         try {
+
+          
+
           const historyData = await fetchHistoryData(selectedAsset);
           setChartHistoryList(historyData);
         } catch (error: any) {
