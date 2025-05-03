@@ -185,7 +185,27 @@ def process_user_query(user_query, asset_id):
 
     if isText is True:
         print("Text answer needed")
-        return generate_text_from_query_results(user_query, raw_results, sensor_name=object_name)
+        explanation = generate_text_from_query_results(user_query, raw_results, sensor_name=object_name)
+
+        if isinstance(explanation, dict) and "message" in explanation:
+            return {
+            "success": True,
+            "type": "text",
+            "content": explanation["message"]
+        }
+
+        if isinstance(explanation, str):
+            return {
+            "success": True,
+            "type": "text",
+            "content": explanation
+        }
+
+        return {
+        "success": False,
+        "message": "Invalid format returned by generate_text_from_query_results"
+    }
+
     else:
         return generate_chart_from_query_results(user_query, raw_results, chartType, previousPrompt=None)
 
