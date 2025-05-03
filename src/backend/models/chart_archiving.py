@@ -3,7 +3,7 @@ from .database import chart_history_collection
 import json
 from pymongo.errors import PyMongoError
 from fastapi.responses import JSONResponse
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pydantic import BaseModel
 
 
@@ -55,8 +55,8 @@ def addChartHistory(chart_data):
         count = chart_history_collection.count_documents({"asset_id": asset_id})
         print(f"Total charts for asset_id {asset_id}: {count}")
 
-        if count > 20:
-            excess = count - 20
+        if count > 50:
+            excess = count - 50
             oldest_entries = chart_history_collection.find({"asset_id": asset_id}).sort("date", 1).limit(excess)
             
             ids_to_delete = [entry["_id"] for entry in oldest_entries]
@@ -75,6 +75,16 @@ def addChartHistory(chart_data):
 
 def get_chart_history(asset_id):
     try:
+        seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
+        seven_days_ago_ms = int(seven_days_ago.timestamp() * 1000)
+
+        print(seven_days_ago_ms)
+
+        chart_history_collection.delete_many({
+            "asset_id": asset_id,
+            "date": {"$lt": seven_days_ago_ms}
+        })
+
         charts = chart_history_collection.find({"asset_id": asset_id})  
         charts_list = list(charts)  
         
