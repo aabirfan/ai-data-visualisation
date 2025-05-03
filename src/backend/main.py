@@ -31,6 +31,10 @@ from utils.manual_query_processor import process_manual_query
 
 from utils.fetch_assets import fetch_assets_from_db
 
+from utils.sensor_parser import extract_sensor
+
+from utils.pipelines import try_manual_pipeline, try_rag_pipeline
+
 load_dotenv("../../.env.local")
 
 app = FastAPI()
@@ -78,32 +82,31 @@ def read_root():
 @app.post("/query")
 @limiter.limit("10/minute")
 async def process_query(query_request: PromptRequest, request: Request):
-    print(f"Received query_request: {query_request}")
-    print(f"Asset ID: {query_request.asset_id}")
-    print(f"Previous prompt: {query_request.previousQuery}")
-    #Temporary, the prompt has to start with manual to receive a manual chart
+    query = query_request.query
+    asset_id = query_request.asset_id
+    prev = query_request.previousQuery
 
-    if query_request.query.lower().startswith("manual"):
-        response, sensor_name  = process_manual_query(query_request.query,  query_request.asset_id)
+    print(f"Received query: '{query}' for asset_id: {asset_id}")
 
-        print(f"DEBUG: Sensor Name received in process_query: {sensor_name}")
+    if query.lower().startswith("reply"):
+        return process_llm_pipeline(query, asset_id, prev, isReply=True)
 
-        if isinstance(response, dict) and "error" in response:
-            return {"error": response["error"]}
-        
-        chart = manual_chart_builder(response, query_request.query, sensor_name)
-        return chart
-    
-    #Temporary, the prompt has to start with rag to receive a rag chart
-    if query_request.query.lower().startswith("rag"):
-        return process_user_query(query_request.query, query_request.asset_id) 
-    
-    #Temporary, if prompt starts with reply, run pipeline with that flag.
-    if query_request.query.lower().startswith("reply"):
-        return process_llm_pipeline(query_request.query, query_request.asset_id, query_request.previousQuery, isReply=True)
+    expected_sensors = extract_sensor(query)
 
-    #PIPELINE 3
-    return process_llm_pipeline(query_request.query, query_request.asset_id, previous_prompts=None, isReply=False)
+    # 1. Pipeline 1: Manual
+    manual_result = try_manual_pipeline(query, asset_id, expected_sensors)
+    if manual_result:
+        return manual_result
+
+    # 2. Pipeline 2: RAG
+    rag_result = try_rag_pipeline(query, asset_id)
+    if rag_result:
+        return rag_result
+
+    # Pipeline 3: LLM
+    print("Routing to LLM.")
+    return process_llm_pipeline(query, asset_id, previous_prompts=None, isReply=False)
+
 
 
 @app.post("/save_chart")

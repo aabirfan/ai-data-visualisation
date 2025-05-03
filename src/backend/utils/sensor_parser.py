@@ -47,7 +47,6 @@ def extract_sensor(query_text):
     sensor_types = get_sensor_types()
     
     sensor_keywords_map = {}
-    
     detected_sensors = []
 
     for sensor in sensor_types:
@@ -65,8 +64,17 @@ def extract_sensor(query_text):
             print("ERROR: No sensor types found in the database.")
             return {"error": "No sensor types found."}
         return sensor_types  
-    
+
+    if len(detected_sensors) == 1 and any(w in query_text for w in ["vs", "and", "with", "compared to"]):
+        base = detected_sensors[0].rsplit(" ", 1)[0]  
+        variations = [f"{base} in", f"{base} out", f"{base} reg"]
+        expanded = [s for s in variations if s in sensor_types and s not in detected_sensors]
+        if expanded:
+            print(f"INFO: Expanded sensor match from '{detected_sensors[0]}' to {detected_sensors + expanded}")
+            detected_sensors.extend(expanded)
+
     if not detected_sensors:
         return {"error": "Unknown sensor type."}
 
     return detected_sensors
+
