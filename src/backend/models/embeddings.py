@@ -50,10 +50,15 @@ def vector_search(user_query):
                 "index": "vector_search",
                 "queryVector": bson_query_embedding,
                 "path": "BSON-Float32-Embedding",
-                "numCandidates": 10,
+                "numCandidates": 3,
                 "exact": False,
                 "limit": 1
             }
+        },{
+            "$addFields": {"score": {"$meta": "vectorSearchScore"}}
+        },
+        {
+            "$match": {"score": {"$gte": 0.5}}
         },
         {
             "$project": {
