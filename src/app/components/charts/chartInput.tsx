@@ -10,7 +10,7 @@ interface ChartInputProps {
 }
 
 const sanitizeInput = (input: string) => {
-  const pattern = /^[a-zA-Z0-9æøåÆØÅ\s\/,-.?+]*$/;
+  const pattern = /^[a-zA-Z0-9æøåÆØÅ\s\/,.\-?:+]*$/;
   return pattern.test(input) ? input : "";
 };
 
