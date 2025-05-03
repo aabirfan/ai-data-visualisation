@@ -179,7 +179,7 @@ def fill_llm_chart_data(chart_config, sensor_data, sensor_label=None, interval_m
 
 
 
-def fill_pie_chart_data(sensor_data, user_query="Distribution of sensor values", query_results=None):
+def fill_pie_chart_data(sensor_data, user_query="Distribution of sensor values", query_results=None, previousPrompt=None):
     if not sensor_data or not isinstance(sensor_data, list):
         return None
 
@@ -239,7 +239,8 @@ def fill_pie_chart_data(sensor_data, user_query="Distribution of sensor values",
         num_data_points=len(data_values),
         query=user_query,
         summary_stats=summary_stats,
-        providedChartType="pie"
+        providedChartType="pie",
+        previous_Prompt=previousPrompt
     )
 
     chart_config = llm_result.get("config", {})
