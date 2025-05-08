@@ -1,4 +1,4 @@
-from models.embeddings import get_embedding, generate_bson_vector, vector_collection
+from models.embeddings import get_embedding, generate_vector, vector_collection
 
 
 """
@@ -35,7 +35,7 @@ def embed_query():
     queries = [
     # Minimum Value Queries (English)
     [
-        "What is the minimum value of OBJECT on X?",
+        "What was the standard deviation on x",
         {
             "timestamp": {
                 "$gte": "X TIME_OF_DAY START",
@@ -47,145 +47,9 @@ def embed_query():
         },
         None,
         True,
-        None
-    ],
-    [
-        "What is the smallest value of OBJECT on X?",
-        {
-            "timestamp": {
-                "$gte": "X TIME_OF_DAY START",
-                "$lte": "X TIME_OF_DAY END"
-            },
-            "metadata.name": {
-                "$in": "OBJECT"
-            }
-        },
         None,
-        True,
-        None
     ],
-    [
-        "What is the lowest value of OBJECT on X?",
-        {
-            "timestamp": {
-                "$gte": "X TIME_OF_DAY START",
-                "$lte": "X TIME_OF_DAY END"
-            },
-            "metadata.name": {
-                "$in": "OBJECT"
-            }
-        },
-        None,
-        True,
-        None
-    ],
-    [
-        "Find the minimum value of OBJECT on X.",
-        {
-            "timestamp": {
-                "$gte": "X TIME_OF_DAY START",
-                "$lte": "X TIME_OF_DAY END"
-            },
-            "metadata.name": {
-                "$in": "OBJECT"
-            }
-        },
-        None,
-        True,
-        None
-    ],
-    [
-        "What is the smallest recorded value of OBJECT on X?",
-        {
-            "timestamp": {
-                "$gte": "X TIME_OF_DAY START",
-                "$lte": "X TIME_OF_DAY END"
-            },
-            "metadata.name": {
-                "$in": "OBJECT"
-            }
-        },
-        None,
-        True,
-        None
-    ],
-
-    # Maximum Value Queries (English)
-    [
-        "What is the maximum value of OBJECT on X?",
-        {
-            "timestamp": {
-                "$gte": "X TIME_OF_DAY START",
-                "$lte": "X TIME_OF_DAY END"
-            },
-            "metadata.name": {
-                "$in": "OBJECT"
-            }
-        },
-        None,
-        True,
-        None
-    ],
-    [
-        "What is the largest value of OBJECT on X?",
-        {
-            "timestamp": {
-                "$gte": "X TIME_OF_DAY START",
-                "$lte": "X TIME_OF_DAY END"
-            },
-            "metadata.name": {
-                "$in": "OBJECT"
-            }
-        },
-        None,
-        True,
-        None
-    ],
-    [
-        "What is the highest value of OBJECT on X?",
-        {
-            "timestamp": {
-                "$gte": "X TIME_OF_DAY START",
-                "$lte": "X TIME_OF_DAY END"
-            },
-            "metadata.name": {
-                "$in": "OBJECT"
-            }
-        },
-        None,
-        True,
-        None
-    ],
-    [
-        "Find the maximum value of OBJECT on X.",
-        {
-            "timestamp": {
-                "$gte": "X TIME_OF_DAY START",
-                "$lte": "X TIME_OF_DAY END"
-            },
-            "metadata.name": {
-                "$in": "OBJECT"
-            }
-        },
-        None,
-        True,
-        None
-    ],
-    [
-        "What is the largest recorded value of OBJECT on X?",
-        {
-            "timestamp": {
-                "$gte": "X TIME_OF_DAY START",
-                "$lte": "X TIME_OF_DAY END"
-            },
-            "metadata.name": {
-                "$in": "OBJECT"
-            }
-        },
-        None,
-        True,
-        None
-    ],
+    
 ]
 
     # Extract natural queries
@@ -195,7 +59,7 @@ def embed_query():
     float32_embeddings = get_embedding(natural_queries, precision="float32")
 
     # Generate BSON vector embeddings
-    bson_float32_embeddings = [generate_bson_vector(f32_emb) for f32_emb in float32_embeddings]
+    bson_float32_embeddings = [generate_vector(f32_emb) for f32_emb in float32_embeddings]
 
     # Create documents with the embedding and MongoDB query
     docs = []

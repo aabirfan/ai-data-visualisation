@@ -21,17 +21,17 @@ def get_embedding(data, precision="float32"):
         embeddings = embeddings.astype(np.float32)
     return embeddings
 
-def generate_bson_vector(vector):
-    return Binary.from_vector(vector, BinaryVectorDtype.FLOAT32)
+def generate_vector(vector):
+    return vector.tolist()
 
 def create_docs_with_bson_vector_embeddings(bson_float32, data):
     docs = []
 
-    for (bson_f32_emb, query) in enumerate(zip(bson_float32, data)): 
+    for (embedding, query) in zip(bson_float32, data): 
         doc = {
             "natural_query": query[0],  
             "mongo_query": query[1],    
-            "BSON-Float32-Embedding": bson_f32_emb,
+            "BSON-Float32-Embedding": embedding, 
             "isText": query[3],
             "chartType": query[4]
         }
@@ -42,7 +42,7 @@ def create_docs_with_bson_vector_embeddings(bson_float32, data):
 
 def vector_search(user_query):
     query_embedding = get_embedding(user_query, precision="float32")
-    bson_query_embedding = generate_bson_vector(query_embedding)
+    bson_query_embedding = generate_vector(query_embedding)
 
     pipeline = [
         {
@@ -58,7 +58,7 @@ def vector_search(user_query):
             "$addFields": {"score": {"$meta": "vectorSearchScore"}}
         },
         {
-            "$match": {"score": {"$gte": 0.5}}
+            "$match": {"score": {"$gte": 0.4}}
         },
         {
             "$project": {
@@ -207,7 +207,14 @@ def process_user_query(user_query, asset_id):
     }
 
     else:
-        return generate_chart_from_query_results(user_query, raw_results, chartType, previousPrompt=None)
+        chart = generate_chart_from_query_results(user_query, raw_results, chartType, previousPrompt=None)
+        if chart:
+            return generate_chart_from_query_results(user_query, raw_results, chartType, previousPrompt=None)
+        else:
+            return{
+                "success": False,
+                "message": "Invalid chart generated"
+            }
 
    
 

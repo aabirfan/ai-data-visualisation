@@ -12,6 +12,10 @@ def try_manual_pipeline(query: str, asset_id: str, expected_sensors: list[str]):
         if any(word in query.lower() for word in ["lowest", "highest", "average", "mean", "median", "maximum", "minimum", "difference"]):
             print(f"[Manual] Skipping due to statistical intent in query: '{query}'")
             return None
+        
+        if any(word in query.lower() for word in ["scatter", "bar", "line", "pie"]):
+            print(f"[Manual] Skipping due to specified chart type: '{query}'")
+            return None
 
         if len(expected_sensors) > 1:
             print(f"[Manual] Skipping — multiple sensors ({expected_sensors}) detected (manual only supports 1)")
@@ -40,19 +44,20 @@ def try_rag_pipeline(query: str, asset_id: str):
             print("[RAG] Unexpected response format")
             return None
 
-        if rag_result.get("success") is True:
-            if rag_result.get("type") == "chart":
-                print("[RAG] Chart returned")
-                return rag_result
+       
 
-            if rag_result.get("type") == "text":
-                print("[RAG] Text explanation returned")
-                return {
+        if rag_result.get("type") == "text":
+            print("[RAG] Text explanation returned")
+            return {
                     "success": True,
                     "message": rag_result.get("content", "No message provided."),
                     "type": "text"
                 }
 
+        if rag_result:
+            print("[RAG] Chart returned")
+            return rag_result
+            
         if rag_result.get("success") is False:
             print(f"[RAG] Failed: {rag_result.get('message', 'No message provided')}")
 
